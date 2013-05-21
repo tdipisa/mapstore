@@ -295,8 +295,9 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 title: config.title, 
                 name: config.name,
                 group: config.group,
-                uuid: config.uuid,
-                gnURL: config.gnURL,
+				uuid: config.uuid,
+				wcs: config.wcs, // boolean to know if is a raster layer 
+				gnURL: config.gnURL,
                 source: config.source,
                 properties: "gxp_wmslayerpanel",
                 fixed: config.fixed,
@@ -310,6 +311,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 {name: "name", type: "string"}, 
                 {name: "group", type: "string"},
 				{name: "uuid", type: "string"},
+				{name: "wcs", type: "boolean"},
 				{name: "gnURL", type: "string"},
 				{name: "title", type: "string"},
                 {name: "properties", type: "string"},
@@ -577,7 +579,9 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 if(keyword.indexOf("uuid") != -1){
                     props.uuid = keyword.substring(keyword.indexOf("uuid="));
                     props.uuid = keyword.split("=")[1];
-                }  
+                } else if(keyword.indexOf("WCS") != -1){
+				  props.wcs = true;
+				}   
                         
                 if(keyword.indexOf(locCode+"=") == 0){
                     props.title = keyword.split("=")[1];
