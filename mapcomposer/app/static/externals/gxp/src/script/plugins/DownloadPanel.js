@@ -54,11 +54,36 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
     container: 'fieldset',   
 
-	/** api: config[wpsUrl]
+    /** api: config[wpsUrl]
      *  ``String``
      */
-	wpsUrl: null,
-	
+    wpsUrl: null,
+    
+    /** api: config[wpsProxy]
+     *  ``String``
+     */
+    wpsProxy: null,
+    
+    /** api: config[geostoreUrl]
+     *  ``String``
+     */
+    geostoreUrl: null,
+    
+    /** api: config[geostoreProxy]
+     *  ``String``
+     */
+    geostoreProxy: null,
+    
+    /** api: config[geostoreUser]
+     *  ``String``
+     */
+    geostoreUser: null,
+
+    /** api: config[geostorePassword]
+     *  ``String``
+     */
+    geostorePassword: null,
+
 	/** api: config[gazetteerUrl]
      *  ``String``
      */
@@ -115,6 +140,16 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      *  ``Object``
      */
 	formPanel: null,
+
+    /** api: config[resultPanel]
+     *  ``Object``
+     */
+    resultPanel: null,
+
+    /** 
+     *  ``gxp.plugins.WPSManager``
+     */
+    wpsManager: null,
     
     /** private: method[constructor]
      */
@@ -188,6 +223,31 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				for(var key in this.drawControls) {
 					this.target.mapPanel.map.addControl(this.drawControls[key]);
 				}
+				
+				if (!this.wpsManager){
+				    this.wpsManager = new gxp.plugins.WPSManager({
+                        id: "DownloadPanelWPSManager",
+                        url: this.wpsUrl,
+                        proxy: this.wpsProxy,
+                        geoStoreClient: new gxp.plugins.GeoStoreClient({
+                            url: this.geostoreUrl,
+                            user: this.geostoreUser,
+                            password: this.geostorePassword,
+                            proxy: this.geostoreProxy,
+                            listeners: {
+                                "geostorefailure": function(tool, msg){
+                                    Ext.Msg.show({
+                                        title: "Geostore Exception" ,
+                                        msg: msg,
+                                        buttons: Ext.Msg.OK,
+                                        icon: Ext.Msg.ERROR
+                                    });
+                                }
+                            }
+                        })
+                    });
+				}
+				
 			},
 			scope: this
 		});
@@ -446,13 +506,115 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					itemCls: 'x-check-group-alt',
 					columns: 1,
 					items: [
-						{boxLabel: 'Intersection', name: 'cb-col-2', checked: true},
-						{boxLabel: 'Clip', name: 'cb-col-2'}
+						{boxLabel: 'Intersection', name: 'cb-col-2', inputValue: false, checked: true},
+						{boxLabel: 'Clip', name: 'cb-col-2', inputValue: true}
 					]
 				}
 			]
 		});
 	
+        // set the cookie
+        Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+            expires: new Date(new Date().getTime()+(1000*60*60*24*7)) //7 days from now
+        }));
+        
+        // TODO: The developer must provide an implementation which returns an object hash which represents the Component's restorable state.
+        
+        // create the data store
+        var store = new Ext.data.ArrayStore({
+            fields: [
+               {name: 'id'},
+               {name: 'name'},
+               {name: 'description'},
+               {name: 'status'}
+            ]
+        });
+        
+        
+        this.resultPanel = new Ext.grid.GridPanel({
+            layout:'fit',
+            store: store,
+            columns: [
+                {
+                    id       : 'id',
+                    header   : 'ID', 
+                    width    : 30, 
+                    sortable : true, 
+                    dataIndex: 'id'
+                },
+                {
+                    id       : 'name',
+                    header   : 'Name', 
+                    width    : 75, 
+                    sortable : true, 
+                    dataIndex: 'name'
+                },
+                {
+                    id       : 'description',
+                    header   : 'Description', 
+                    width    : 100, 
+                    dataIndex: 'description'
+                },
+                // TODO status e download posso essere uniti in un pulsante con tooltip
+                {
+                    id       : 'status',
+                    header   : 'Status', 
+                    width    : 100, 
+                    dataIndex: 'status'
+                },
+                {
+                    header   : 'Get Instance', 
+                    width    : 50
+                    
+                },
+                {
+                    header   : 'Download', 
+                    width    : 50
+                    
+                },
+                {
+                    header   : 'Delete', 
+                    width    : 50
+                    
+                } /*,
+                {
+                    xtype: 'actioncolumn',
+                    width: 50,
+                    items: [{
+                        icon   : '../shared/icons/fam/delete.gif',  // Use a URL in the icon config
+                        tooltip: 'Sell stock',
+                        handler: function(grid, rowIndex, colIndex) {
+                            var rec = store.getAt(rowIndex);
+                            alert("Sell " + rec.get('company'));
+                        }
+                    }, {
+                        getClass: function(v, meta, rec) {          // Or return a class from a function
+                            if (rec.get('change') < 0) {
+                                this.items[1].tooltip = 'Do not buy!';
+                                return 'alert-col';
+                            } else {
+                                this.items[1].tooltip = 'Buy stock';
+                                return 'buy-col';
+                            }
+                        },
+                        handler: function(grid, rowIndex, colIndex) {
+                            var rec = store.getAt(rowIndex);
+                            alert("Buy " + rec.get('company'));
+                        }
+                    }]
+                }*/
+            ],
+            //stripeRows: true,
+            //autoExpandColumn: 'description',
+            height: 150,
+            //width: 600,
+            title: 'Results',
+            // config options for stateful behavior
+            stateful: true,
+            stateId: 'resultsState'
+        });
+        
+        
 		// /////////////////////////////////////
 		// FormPanel definition
 		// /////////////////////////////////////
@@ -463,7 +625,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			monitorValid: true,
 			items:[
 				this.laySel,
-				spatialSettings
+				spatialSettings,
+				this.resultPanel
 			],
 			buttons:[
 				'->',
@@ -489,7 +652,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					text: "Download",
 					type: 'submit',	
 					handler: function(){
-						var layerCombo = downloadForm.layerCombo.isValid();
+					    var layerCombo = downloadForm.layerCombo.isValid();
 						var crsCombo = downloadForm.crsCombo.isValid();
 						var formatCombo = downloadForm.formatCombo.isValid();
 						var selectionMode = downloadForm.selectionMode.isValid();
@@ -497,20 +660,182 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var cutMode = downloadForm.cutMode.isValid();
 						
 						var isValid = layerCombo && crsCombo && formatCombo && 
-							selectionMode && bufferCombo && cutMode;
+							selectionMode && bufferField && cutMode;
 						if(isValid){
 							alert(isValid);
 						}
-					}
+						var asreq = this.getAsyncRequest(downloadForm);
+						this.wpsManager.execute('gs:Download', asreq, this.executeCallback, this)
+						
+					},
+					scope:this
 				}
 			]
 		});
 		
 		this.formPanel = downloadForm;
         
+        
 		var panel = gxp.plugins.DownloadPanel.superclass.addOutput.call(this, downloadForm);		
 		return panel;
-    }   
+    },
+    
+    /**
+     * private 
+     */        
+    executeCallback: function(instanceOrRawData){
+        //console.log(instanceOrRawData);
+        Ext.Msg.show({
+            title: "Execute Response" ,
+            msg: Ext.encode(instanceOrRawData),
+            buttons: Ext.Msg.OK,
+            icon: Ext.Msg.INFO
+        });
+        var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
+        task.delay(1000); 
+        //setTimeout("getInstances(false)", 1000);
+    },
+    
+    /*
+    getSyncRequest: function(){
+    
+        var type= null, crop= "false";
+        
+        if(document.getElementById("rawMod").value == "true")
+            type="raw";
+        
+        if(document.getElementById("cropMod").value == "true")
+            crop="true";
+            
+        return {
+            
+            type: type,
+            inputs:{
+                layerName : new OpenLayers.WPSProcess.LiteralData({value:"roads"}),
+                outputFormat:new OpenLayers.WPSProcess.LiteralData({value:"application/gml-3.1.1"}),
+                targetCRS:new OpenLayers.WPSProcess.LiteralData({value:"EPSG:26713"}),
+                ROI: new OpenLayers.WPSProcess.ComplexData({
+                    value: document.getElementById("geometry").value,
+                    mimeType: "application/wkt"
+                }),
+                cropToROI: new OpenLayers.WPSProcess.LiteralData({value:crop})
+            },
+            outputs: [{
+                identifier: "result",
+                mimeType: "application/zip"
+           
+            }]
+        };
+    
+    },*/
+   
+    
+    getAsyncRequest: function(dform){
+    
+        // default true
+        var crop= "false";
+        var cropSel = dform.cutMode.getValue();
+        if(cropSel)
+            crop = (dform.cutMode.getValue().getGroupValue()?"true":"false");
+        
+        return {
+            storeExecuteResponse: true,
+            lineage:  true,
+            status: true,
+            inputs:{
+                layerName : new OpenLayers.WPSProcess.LiteralData({value:"roads"}),
+                outputFormat:new OpenLayers.WPSProcess.LiteralData({value:"application/gml-3.1.1"}),
+                targetCRS:new OpenLayers.WPSProcess.LiteralData({value:"EPSG:26713"}),
+                ROI: new OpenLayers.WPSProcess.ComplexData({
+                    value: "MULTIPOLYGON (((593183.6607205212 4923980.52355841, 593157.5354776975 4925010.357654894, 593538.9831172063 4925012.3979659295, 593486.3194805589 4924758.104346828, 593396.420353626 4924644.995457535, 593390.2700977508 4924528.182140326, 593279.007632818 4924326.4864263795, 593256.9034614969 4924278.360480662, 593221.8366082398 4924192.04550526, 593198.169007116 4924063.757134442, 593194.3458770494 4924031.687860058, 593183.6607205212 4923980.52355841)))",
+                    mimeType: "application/wkt"
+                }),
+                cropToROI: new OpenLayers.WPSProcess.LiteralData({value:crop})
+            },
+            outputs: [{
+                identifier: "result",
+                mimeType: "application/zip"
+            }]
+        };
+    },    
+    
+    getInstances: function(update){
+        
+        var me = this;
+        this.wpsManager.getExecuteInstances("gs:Download", update, function(instances){
+            var store = me.resultPanel.getStore();
+            var data = {
+                    id: '',
+                    name: '',
+                    description: '',
+                    status:''
+                };
+            var dsc, p;
+            for(var i=0; i<instances.length; i++){
+                //console.log(instances[i]);
+                data.id = instances[i].id;
+                data.name = instances[i].name;
+                dsc = Ext.decode(instances[i].description);
+                data.status = Ext.encode(dsc.status);
+                data.description = Ext.encode(dsc.statusLocation);
+                p = new store.recordType(data); // create new record
+                store.add(p);
+            }
+            me.resultPanel.getView().refresh();
+        });
+         
+    },
+    
+    removeInstance: function(instanceID){
+        this.wpsManager.deleteExecuteInstance(instanceID, function(instances){
+            Ext.Msg.show({
+                title: "Remove Instance",
+                msg: "Instance " + instanceID+ " removed.",
+                buttons: Ext.Msg.OK,
+                icon: Ext.Msg.INFO
+            });
+            setTimeout(this.getInstances, 1000, [false]);
+        });
+    },
+    
+    getInstance: function(instanceID){
+        
+        this.wpsManager.getExecuteInstance(instanceID, false, function(instance){
+           
+            var tpl = new Ext.XTemplate(
+                '<table class="gridtable">',
+                '<tr><th>ID</th>',
+                '<td>{id}</td></tr>',
+                '<tr><th>Name</th>',
+                '<td>{name}</td></tr>',
+                '<tr><th>Creation</th>',
+                '<td>{creation}</td></tr>',
+                '<tr><th>Description</th>',       
+                '<td>{description}</td></tr>',
+                '<tr><th>Category</th>',          
+                '<td>{category}</td></tr>',
+                '<tr><th>Metadata</th>',          
+                '<td>{metadata}</td></tr>',
+                '<tr><th>Attributes</th>',        
+                '<td>{attributes}</td></tr>',
+                '<tr><th>Data</th>',          
+                '<td>{store}</td></tr>',
+                '</table>'
+                );
+          
+            instance.Resource.store= Ext.encode(instance.Resource.data);
+            instance.Resource.category= Ext.encode(instance.Resource.category);
+            Ext.Msg.show({
+                title: "Instance " + instance.Resource.id ,
+                msg: tpl.applyTemplate(instance.Resource),
+                buttons: Ext.Msg.OK,
+                icon: Ext.Msg.INFO
+            });
+            
+       });
+    }
+
+       
 });
 
 Ext.preg(gxp.plugins.DownloadPanel.prototype.ptype, gxp.plugins.DownloadPanel);
