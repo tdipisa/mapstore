@@ -6,8 +6,8 @@
 	<!-- Basic OpenLayers libs -->
     <script type="text/javascript" src="script/OpenLayers.js"></script>		
 	
-	<!-- Externatls OpenLayers libraries to manage WPS processes and other extensions
-	<script type="text/javascript" src="script/OpenLayersExt.js"></script>-->
+	<!-- Externatls OpenLayers libraries to manage WPS processes -->
+	<script type="text/javascript" src="script/OpenLayersExt.js"></script> 
 	
 	<!-- colorpicker resources 
     <link rel="stylesheet" type="text/css" href="externals/colorpicker/css/colorpicker.css">
@@ -252,7 +252,7 @@
                 iconCls: "icon-geosol",
                 width : 150,
                 handler: function(btn){
-                    window.open('http://geo-solutions.it/contact/', '_blank');
+                    window.open('http://www.geo-solutions.it/contact/', '_blank');
                 }
             });    
 			
@@ -347,7 +347,7 @@
 	    };
 
 	    Ext.Ajax.request({
-			  url: customConfigName ? "config/" + customConfigName + ".js"  : "config/mapStoreConfig.js",
+			  url: customConfigName ? "config/" + customConfigName + ".js"  : "config/development.js",
 			  method: 'GET',
 			  success: function(response, opts){          
 				  
