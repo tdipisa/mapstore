@@ -259,7 +259,7 @@ CSWSearchTool = Ext.extend(Ext.form.FormPanel, {
                     var t = el.dom.offsetWidth; // force recalc
                     el.setWidth(ul.getWidth()+el.getFrameWidth("lr"));
                 }
-            },
+            }
         });
     
         //
