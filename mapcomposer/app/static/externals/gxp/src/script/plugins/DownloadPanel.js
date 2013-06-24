@@ -192,13 +192,20 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					displayInLayerSwitcher: false
 				});
 				
-				this.spatialSelection.events.register("beforefeatureadded", this, function(){
+                this.spatialSelection.events.register("beforefeatureadded", this, function(){
 					// //////////////////////////////////////////////////////
 					// Remove the old features before drawing other features.
 					// //////////////////////////////////////////////////////
 					this.spatialSelection.removeAllFeatures();
 				});
-				
+                /*
+                this.spatialSelection.events.register("featureadded", this, function(feature){
+                    var formatwkt = new OpenLayers.Format.WKT();
+
+                    this.wkt = formatwkt.write(feature);
+                    console.log(this.wkt);
+                });
+				*/
 				var ev = map.events.register('addlayer', this, function(e){
 					if( e.layer == this.spatialSelection ) 
 						return;
@@ -246,6 +253,32 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             }
                         })
                     });
+                    
+                    this.wpsManager.execute = function(processName, executeRequest, callback, scope) {
+                        if(!scope)
+                            scope = this;
+                            
+                        var process = this.wpsClient.getProcess('opengeo', processName);    
+                        var instanceName=null;
+                        var executeOptions;
+                        var me= this;
+                        
+                        if(executeRequest instanceof Object){                
+                            executeOptions= executeRequest;
+                        }else{                
+                            executeOptions= new OpenLayers.Format.WPSExecuteRequest().read(executeRequest).processInput;                        
+                        }   
+                        
+                        instanceName=this.getInstanceName(processName);
+                        executeOptions.scope= this;
+                        executeOptions.success= function(response, processInstance){
+                            callback.call(scope, response);
+                        };
+                       
+                        executeOptions.processInstance=instanceName;                        
+                        process.execute(executeOptions);                        
+                        return instanceName;
+                    }
 				}
 				
 			},
@@ -481,9 +514,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					width: 140,
 					allowBlank: false,
 					items: [
-						{boxLabel: 'Box', name: 'cb-col-1', value: 'box'},
-						{boxLabel: 'Polygon', name: 'cb-col-1', value: 'polygon'},
-						{boxLabel: 'Place', name: 'cb-col-1', value: 'place'}
+						{boxLabel: 'Box', name: 'cb-col-1', value: 'box'}
+						,{boxLabel: 'Polygon', name: 'cb-col-1', value: 'polygon'}
+						//,{boxLabel: 'Place', name: 'cb-col-1', value: 'place'}
 					],
 					listeners: {
 						scope: this,
@@ -512,7 +545,28 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				}
 			]
 		});
-	
+
+        optionalSettings = new Ext.form.FieldSet({
+            title: "Optional Settings",
+            items: [
+                {
+                    xtype: "textfield",
+                    ref: "../filterField",
+                    fieldLabel: "Filter",
+                    width: 140,
+                    disabled: false                 
+                },
+                {
+                    xtype: "textfield",
+                    ref: "../emailField",
+                    fieldLabel: "Email",
+                    width: 140,
+                    disabled: false                 
+                },
+            ]
+        });
+
+
         // set the cookie
         /*
         Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
@@ -548,35 +602,50 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     id       : 'executionId',
                     header   : 'execID', 
-                    width    : 40, 
+                    width    : 45, 
                     sortable : true, 
                     dataIndex: 'executionId'
                 },
                 {
                     id       : 'executionStatus',
-                    header   : 'Status', 
-                    width    : 100, 
+                    header   : 'Process Status', 
+                    width    : 80, 
                     dataIndex: 'executionStatus'
+                    /*
+                    ,xtype: 'templatecolumn'
+                    ,tpl: '<tpl if="executionStatus == &quot;Process Accepted&quot;">Accepted</tpl>'+
+                         '<tpl if="executionStatus == &quot;Process Succeeded&quot;">Completed</tpl>'+
+                         '<tpl if="executionStatus == &quot;Process Running&quot;">Running</tpl>'+
+                         '<tpl if="executionStatus == &quot;Process Failed&quot;">Failed</tpl>'
+                    */
                 },
                 {
                     xtype: 'actioncolumn',
                     header: 'Actions', 
-                    width: 30,
+                    width: 40,
                     items: [{
                             getClass: function(v, meta, rec) { 
                                 var tooltip = '', icnClass='decline';
                                 switch (rec.get('executionStatus')) {    
                                     case 'Process Pending':
+                                    case 'Pending':
                                         icnClass = 'decline';
                                         tooltip = 'Pending';
                                         break;
                                     case 'Process Succeeded':
+                                    case 'Succeeded':
                                         icnClass = 'accept';
                                         tooltip = 'Success';
                                         break;
                                     case 'Process Started':
+                                    case 'Started':
                                         icnClass = 'accept';
                                         tooltip = 'Executing';
+                                        break;
+                                    case 'Process Accepted':
+                                    case 'Accepted':
+                                        icnClass = 'accept';
+                                        tooltip = 'Accepted';
                                         break;
                                     default:
                                         icnClass = 'decline';
@@ -588,7 +657,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             },
                             handler: function(grid, rowIndex, colIndex) {
                                 var rec = store.getAt(rowIndex);
-                                if(rec.get('executionStatus') == 'Process Succeeded'){
+                                if(rec.get('executionStatus').indexOf('Succeeded')!= -1){
                                     mydlp.getInstance(rec.get('id'));
                                 }
                             }
@@ -597,35 +666,42 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     xtype: 'actioncolumn',
                     header: 'Delete', 
-                    width: 50,
+                    width: 40,
                     hidden: true,
                     items: [{
                         iconCls: 'decline',
                         tooltip: 'Delete',
                         handler: function(grid, rowIndex, colIndex) {
                             var rec = store.getAt(rowIndex);
-                            this.removeInstance(rec.get('id'));
+                            var id = rec.get('id');
+                            Ext.Msg.confirm({
+                                title: "Remove Instance",
+                                msg: "Do you want to delete instance "+id+"?",
+                                fn: this.removeInstance(id),
+                                scope: this
+                            });
+                            //this.removeInstance(id);
                         },
                         scope: this
                     }]
                 },{
                     id       : 'phase',
                     header   : 'PHASE', 
-                    width    : 30, 
+                    width    : 60, 
                     sortable : true, 
                     dataIndex: 'phase'
                 },
                 {
                     id       : 'progress',
                     header   : 'PROGRESS', 
-                    width    : 20, 
+                    width    : 66, 
                     sortable : true, 
                     dataIndex: 'progress'
                 },
                 {
                     id       : 'result',
                     header   : 'RESULT', 
-                    width    : 100, 
+                    width    : 50, 
                     sortable : true, 
                     dataIndex: 'result'
                 }
@@ -664,6 +740,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			items:[
 				this.laySel,
 				spatialSettings,
+				optionalSettings,
 				this.resultPanel
 			],
 			buttons:[
@@ -704,14 +781,23 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var bufferField = downloadForm.bufferField.isValid();
 						var cutMode = downloadForm.cutMode.isValid();
 						
+						// DEBUG
+						/*
+						var alle = "";
+						var fv = downloadForm.getForm().getFieldValues();
+                        for(var key in fv)
+                            alle += ("["+key+"] = "+fv[key]+"\n");
+                        alert(alle);
+						*////
+						
 						var isValid = layerCombo && crsCombo && formatCombo && 
 							selectionMode && bufferField && cutMode;
 						if(isValid){
-							alert(isValid);
+							//alert(isValid);		
+    						var asreq = this.getAsyncRequest(downloadForm);
+    						this.wpsManager.execute('gs:Download', asreq, this.executeCallback, this)
+    						this.startRunner();
 						}
-						var asreq = this.getAsyncRequest(downloadForm);
-						this.wpsManager.execute('gs:Download', asreq, this.executeCallback, this)
-						
 					},
 					scope:this
 				}
@@ -740,40 +826,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         //setTimeout("getInstances(false)", 1000);
     },
     
-    /*
-    getSyncRequest: function(){
-    
-        var type= null, crop= "false";
-        
-        if(document.getElementById("rawMod").value == "true")
-            type="raw";
-        
-        if(document.getElementById("cropMod").value == "true")
-            crop="true";
-            
-        return {
-            
-            type: type,
-            inputs:{
-                layerName : new OpenLayers.WPSProcess.LiteralData({value:"roads"}),
-                outputFormat:new OpenLayers.WPSProcess.LiteralData({value:"application/gml-3.1.1"}),
-                targetCRS:new OpenLayers.WPSProcess.LiteralData({value:"EPSG:26713"}),
-                ROI: new OpenLayers.WPSProcess.ComplexData({
-                    value: document.getElementById("geometry").value,
-                    mimeType: "application/wkt"
-                }),
-                cropToROI: new OpenLayers.WPSProcess.LiteralData({value:crop})
-            },
-            outputs: [{
-                identifier: "result",
-                mimeType: "application/zip"
-           
-            }]
-        };
-    
-    },*/
-   
-    
     getAsyncRequest: function(dform){
     
         // default true
@@ -782,16 +834,41 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         if(cropSel)
             crop = (dform.cutMode.getValue().getGroupValue()?"true":"false");
         
+        var layer = dform.layerCombo.getValue();
+        var crs = dform.crsCombo.getValue();
+        var format = dform.formatCombo.getValue();
+        //var selectionMode = dform.selectionMode.getValue().getGroupValue();
+        
+        console.log(this.spatialSelection);
+        var wkt ;
+        if(this.spatialSelection.features.length){
+            var formatwkt = new OpenLayers.Format.WKT();
+            var feature = this.spatialSelection.features[0];
+            wkt = formatwkt.write(feature);
+            var choosenProj = new OpenLayers.Projection(crs);
+            var mapProj = this.target.mapPanel.map.getProjectionObject();
+            var clone = feature.geometry.clone();
+            clone.transform(mapProj, choosenProj);
+            var tf = new OpenLayers.Feature.Vector(clone);
+            wkt = formatwkt.write(tf);
+            console.log(wkt);
+        }
+        
+        var bufferField = dform.bufferField.getValue();
+        var filterField = dform.filterField.getValue();
+        var emailField = dform.emailField.getValue();
+        
         return {
             storeExecuteResponse: true,
             lineage:  true,
             status: true,
             inputs:{
-                layerName : new OpenLayers.WPSProcess.LiteralData({value:"roads"}),
+                layerName : new OpenLayers.WPSProcess.LiteralData({value:layer}),
                 outputFormat:new OpenLayers.WPSProcess.LiteralData({value:"application/gml-3.1.1"}),
-                targetCRS:new OpenLayers.WPSProcess.LiteralData({value:"EPSG:26713"}),
+                targetCRS:new OpenLayers.WPSProcess.LiteralData({value:crs}),
                 ROI: new OpenLayers.WPSProcess.ComplexData({
-                    value: "MULTIPOLYGON (((593183.6607205212 4923980.52355841, 593157.5354776975 4925010.357654894, 593538.9831172063 4925012.3979659295, 593486.3194805589 4924758.104346828, 593396.420353626 4924644.995457535, 593390.2700977508 4924528.182140326, 593279.007632818 4924326.4864263795, 593256.9034614969 4924278.360480662, 593221.8366082398 4924192.04550526, 593198.169007116 4924063.757134442, 593194.3458770494 4924031.687860058, 593183.6607205212 4923980.52355841)))",
+                    //value: "MULTIPOLYGON (((593183.6607205212 4923980.52355841, 593157.5354776975 4925010.357654894, 593538.9831172063 4925012.3979659295, 593486.3194805589 4924758.104346828, 593396.420353626 4924644.995457535, 593390.2700977508 4924528.182140326, 593279.007632818 4924326.4864263795, 593256.9034614969 4924278.360480662, 593221.8366082398 4924192.04550526, 593198.169007116 4924063.757134442, 593194.3458770494 4924031.687860058, 593183.6607205212 4923980.52355841)))",
+                    value: wkt,
                     mimeType: "application/wkt"
                 }),
                 cropToROI: new OpenLayers.WPSProcess.LiteralData({value:crop})
@@ -826,7 +903,18 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 //data.name = instances[i].name;
                 dsc = Ext.decode(instances[i].description);
                 //console.log(dsc);
-                data.executionStatus = dsc.status;
+                switch(dsc.status){
+                    case 'Process Started':
+                    case 'Process Accepted':
+                    case 'Process Paused':
+                    case 'Process Failed':
+                    case 'Process Succeeded':
+                        data.executionStatus = dsc.status.replace('Process ', '');;
+                        break;
+                    default:
+                        data.executionStatus = dsc.status;
+                        break;
+                }
                 if(dsc.statusLocation){
                     data.description = dsc.statusLocation;
                     var getParams = dsc.statusLocation.split("?");
@@ -901,32 +989,39 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         for(var r in records){  }
         */
         var store = this.resultPanel.getStore();
-        
-        Ext.TaskMgr.start({
+        //if(!this.runningTask)
+        this.runningTask = Ext.TaskMgr.start({
             run: function(){
-                
                 store.each(this.updateRecord, this);
-                
+                // TODO: salvare i record dopo che sono stati aggiornati?
             },
             interval: 10000,
             scope: this
         });
-
+        //else Ext.TaskMgr.start(this.runningTask);
         
         
     },
     stopRunner: function(){
         // TODO: fermare solo il mio task
         Ext.TaskMgr.stopAll();
+        if(this.runningTask)
+            Ext.TaskMgr.stop(this.runningTask);
+        
     },
     
     updateRecord: function(r){
         
         if(!r.get('executionId')){
-            //console.log("Skipping");
-            //console.log(r);
             return;
         }
+        
+        // TODO: i nomi dei campi delle due richieste wps non coincidono, workaround temporaneo
+        if( r.get('phase') == 'COMPLETED' || 
+            r.get('phase') == 'FAILED' ){
+            return;
+        }
+        
         /*
         // Reader con Extjs
         var xmlrecord = Ext.data.Record.create([
@@ -970,13 +1065,29 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             console.log(doc.childNodes);
             */
             var element =  Ext.decode(response);
-            //console.log(element);
             
-            var x = element["org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx"];
-            if( x && (x.length > 1) ){
-                r.set('phase', x.phase);
-                r.set('progress', x.progress);
-                r.set('result', x.result);
+            if(!("list" in element)){
+                alert("Lista non esistente");
+                return;
+            }
+            
+            var list = element.list;
+            var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+            
+            if(!(magicString in list)){
+                alert("Lista vuota");
+                for (var i in list){
+                    console.log(i);
+                    console.log(list[i]);
+                }
+                return;
+            }
+            
+            var x = list[magicString];
+            if( x && (x.length > 0) ){
+                r.set('phase', x[0].phase);
+                r.set('progress', x[0].progress);
+                r.set('result', x[0].result);
             } 
             
         }, this)
