@@ -514,23 +514,26 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		});
 	
         // set the cookie
+        /*
         Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
             expires: new Date(new Date().getTime()+(1000*60*60*24*7)) //7 days from now
         }));
         
         // TODO: The developer must provide an implementation which returns an object hash which represents the Component's restorable state.
-        
+        */
         // create the data store
         var store = new Ext.data.ArrayStore({
             fields: [
                {name: 'id'},
-               {name: 'name'},
-               {name: 'description'},
-               {name: 'status'}
+               {name: 'executionId'},
+               {name: 'executionStatus'},
+               {name: 'phase'},
+               {name: 'progress'},
+               {name: 'result'}
             ]
         });
         
-        
+        var mydlp = this;
         this.resultPanel = new Ext.grid.GridPanel({
             layout:'fit',
             store: store,
@@ -539,79 +542,114 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     id       : 'id',
                     header   : 'ID', 
                     width    : 30, 
-                    sortable : true, 
+                    hidden : true, 
                     dataIndex: 'id'
                 },
                 {
-                    id       : 'name',
-                    header   : 'Name', 
-                    width    : 75, 
+                    id       : 'executionId',
+                    header   : 'execID', 
+                    width    : 40, 
                     sortable : true, 
-                    dataIndex: 'name'
+                    dataIndex: 'executionId'
                 },
                 {
-                    id       : 'description',
-                    header   : 'Description', 
-                    width    : 100, 
-                    dataIndex: 'description'
-                },
-                // TODO status e download posso essere uniti in un pulsante con tooltip
-                {
-                    id       : 'status',
+                    id       : 'executionStatus',
                     header   : 'Status', 
                     width    : 100, 
-                    dataIndex: 'status'
+                    dataIndex: 'executionStatus'
                 },
-                {
-                    header   : 'Get Instance', 
-                    width    : 50
-                    
-                },
-                {
-                    header   : 'Download', 
-                    width    : 50
-                    
-                },
-                {
-                    header   : 'Delete', 
-                    width    : 50
-                    
-                } /*,
                 {
                     xtype: 'actioncolumn',
-                    width: 50,
+                    header: 'Actions', 
+                    width: 30,
                     items: [{
-                        icon   : '../shared/icons/fam/delete.gif',  // Use a URL in the icon config
-                        tooltip: 'Sell stock',
-                        handler: function(grid, rowIndex, colIndex) {
-                            var rec = store.getAt(rowIndex);
-                            alert("Sell " + rec.get('company'));
-                        }
-                    }, {
-                        getClass: function(v, meta, rec) {          // Or return a class from a function
-                            if (rec.get('change') < 0) {
-                                this.items[1].tooltip = 'Do not buy!';
-                                return 'alert-col';
-                            } else {
-                                this.items[1].tooltip = 'Buy stock';
-                                return 'buy-col';
+                            getClass: function(v, meta, rec) { 
+                                var tooltip = '', icnClass='decline';
+                                switch (rec.get('executionStatus')) {    
+                                    case 'Process Pending':
+                                        icnClass = 'decline';
+                                        tooltip = 'Pending';
+                                        break;
+                                    case 'Process Succeeded':
+                                        icnClass = 'accept';
+                                        tooltip = 'Success';
+                                        break;
+                                    case 'Process Started':
+                                        icnClass = 'accept';
+                                        tooltip = 'Executing';
+                                        break;
+                                    default:
+                                        icnClass = 'decline';
+                                        tooltip = rec.get('executionStatus');
+                                        break;
+                                }
+                                this.items[0].tooltip = tooltip;
+                                return icnClass;
+                            },
+                            handler: function(grid, rowIndex, colIndex) {
+                                var rec = store.getAt(rowIndex);
+                                if(rec.get('executionStatus') == 'Process Succeeded'){
+                                    mydlp.getInstance(rec.get('id'));
+                                }
                             }
-                        },
+                    }]
+                },
+                {
+                    xtype: 'actioncolumn',
+                    header: 'Delete', 
+                    width: 50,
+                    hidden: true,
+                    items: [{
+                        iconCls: 'decline',
+                        tooltip: 'Delete',
                         handler: function(grid, rowIndex, colIndex) {
                             var rec = store.getAt(rowIndex);
-                            alert("Buy " + rec.get('company'));
-                        }
+                            this.removeInstance(rec.get('id'));
+                        },
+                        scope: this
                     }]
-                }*/
+                },{
+                    id       : 'phase',
+                    header   : 'PHASE', 
+                    width    : 30, 
+                    sortable : true, 
+                    dataIndex: 'phase'
+                },
+                {
+                    id       : 'progress',
+                    header   : 'PROGRESS', 
+                    width    : 20, 
+                    sortable : true, 
+                    dataIndex: 'progress'
+                },
+                {
+                    id       : 'result',
+                    header   : 'RESULT', 
+                    width    : 100, 
+                    sortable : true, 
+                    dataIndex: 'result'
+                }
             ],
             //stripeRows: true,
             //autoExpandColumn: 'description',
             height: 150,
             //width: 600,
             title: 'Results',
-            // config options for stateful behavior
+            /*
+            // config options for stateful behavior, cookie
             stateful: true,
-            stateId: 'resultsState'
+            stateId: 'resultsState',
+            */
+            listeners:{
+                viewready:{
+                    fn: function(){
+                        this.getInstances(false);
+                        this.startRunner();
+                        },
+                    scope: this
+                }
+            },
+            scope:this
         });
         
         
@@ -631,23 +669,30 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			buttons:[
 				'->',
 				{
-					text: "Reset",
+					text: "Refresh",
 					scope: this,
 					handler: function(){
-						// ////////////////////////////////////////
-						// Remove the previous selected layer, 
-						// from this tool if exists.
-						// ////////////////////////////////////////
-						if(this.selectedLayer){
-							this.target.mapPanel.layers.remove(this.selectedLayer);
-						}
-						
-						// ///////////////////
-						// Reset From fields.
-						// ///////////////////
-						this.resetForm();
+						this.getInstances(true);
 					}
 				},
+                {
+                    text: "Reset",
+                    scope: this,
+                    handler: function(){
+                        // ////////////////////////////////////////
+                        // Remove the previous selected layer, 
+                        // from this tool if exists.
+                        // ////////////////////////////////////////
+                        if(this.selectedLayer){
+                            this.target.mapPanel.layers.remove(this.selectedLayer);
+                        }
+                        
+                        // ///////////////////
+                        // Reset From fields.
+                        // ///////////////////
+                        this.resetForm();
+                    }
+                },
 				{
 					text: "Download",
 					type: 'submit',	
@@ -674,7 +719,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		});
 		
 		this.formPanel = downloadForm;
-        
         
 		var panel = gxp.plugins.DownloadPanel.superclass.addOutput.call(this, downloadForm);		
 		return panel;
@@ -761,23 +805,39 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     
     getInstances: function(update){
         
+        // TODO getExecuteInstances deve essere slegato da geostore
         var me = this;
         this.wpsManager.getExecuteInstances("gs:Download", update, function(instances){
             var store = me.resultPanel.getStore();
-            var data = {
-                    id: '',
-                    name: '',
-                    description: '',
-                    status:''
-                };
+            store.removeAll();
             var dsc, p;
             for(var i=0; i<instances.length; i++){
                 //console.log(instances[i]);
+                var data = {
+                    id: '',
+                    executionId: '',
+                    executionStatus: '',
+                    description: '',
+                    description: '',
+                    description: '',
+                    status:''
+                };
                 data.id = instances[i].id;
-                data.name = instances[i].name;
+                //data.name = instances[i].name;
                 dsc = Ext.decode(instances[i].description);
-                data.status = Ext.encode(dsc.status);
-                data.description = Ext.encode(dsc.statusLocation);
+                //console.log(dsc);
+                data.executionStatus = dsc.status;
+                if(dsc.statusLocation){
+                    data.description = dsc.statusLocation;
+                    var getParams = dsc.statusLocation.split("?");
+                    if(getParams.length>1){
+                        var params = Ext.urlDecode(getParams[1]);
+                        if(params.executionId){
+                            data.executionId = params.executionId;
+                        }
+                    }
+                }
+                //console.log(data);
                 p = new store.recordType(data); // create new record
                 store.add(p);
             }
@@ -794,8 +854,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 buttons: Ext.Msg.OK,
                 icon: Ext.Msg.INFO
             });
-            setTimeout(this.getInstances, 1000, [false]);
         });
+        this.getInstances(false);
     },
     
     getInstance: function(instanceID){
@@ -818,7 +878,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 '<td>{metadata}</td></tr>',
                 '<tr><th>Attributes</th>',        
                 '<td>{attributes}</td></tr>',
-                '<tr><th>Data</th>',          
                 '<td>{store}</td></tr>',
                 '</table>'
                 );
@@ -833,6 +892,98 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             });
             
        });
+    },
+    
+    startRunner: function(){
+        
+        /*
+        var records = store.getRange();
+        for(var r in records){  }
+        */
+        var store = this.resultPanel.getStore();
+        
+        Ext.TaskMgr.start({
+            run: function(){
+                
+                store.each(this.updateRecord, this);
+                
+            },
+            interval: 10000,
+            scope: this
+        });
+
+        
+        
+    },
+    stopRunner: function(){
+        // TODO: fermare solo il mio task
+        Ext.TaskMgr.stopAll();
+    },
+    
+    updateRecord: function(r){
+        
+        if(!r.get('executionId')){
+            //console.log("Skipping");
+            //console.log(r);
+            return;
+        }
+        /*
+        // Reader con Extjs
+        var xmlrecord = Ext.data.Record.create([
+           {name: 'executionId'},     
+           {name: 'phase'},
+           {name: 'progress'},
+           {name: 'result'}
+        ]);
+        var myReader = new Ext.data.XmlReader({
+           record: "org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx" // The repeated element which contains row information
+        }, xmlrecord);
+        
+        
+        // reader con OpenLayers
+        var format = new OpenLayers.Format.XML();
+        var doc = null;
+        */
+        
+        r.beginEdit();
+        
+        var richiesta = {
+            type: "raw",
+            inputs:{
+                executionId : new OpenLayers.WPSProcess.LiteralData({value:r.get('executionId')}),
+            },
+            outputs: [{
+                identifier: "result",
+                mimeType: "application/json"
+            }]
+        };
+
+        this.wpsManager.execute('gs:ClusterManager', richiesta, function(response){
+            /*
+            console.log("Risposta ClusterManager");
+            console.log(response);
+                        
+            var records = myReader.readRecords(response);
+            console.log(records);
+            
+            doc = format.read(response);
+            console.log(doc.childNodes);
+            */
+            var element =  Ext.decode(response);
+            //console.log(element);
+            
+            var x = element["org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx"];
+            if( x && (x.length > 1) ){
+                r.set('phase', x.phase);
+                r.set('progress', x.progress);
+                r.set('result', x.result);
+            } 
+            
+        }, this)
+        
+        
+        
+        r.endEdit();
     }
 
        

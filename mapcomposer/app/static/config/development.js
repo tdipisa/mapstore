@@ -5,7 +5,7 @@
    "gsSources":{ 
 		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://demo1.geo-solutions.it/geoserver-enterprise/ows",
+			"url": "http://localhost:8080/geoserver/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
 				"TILED": true,
