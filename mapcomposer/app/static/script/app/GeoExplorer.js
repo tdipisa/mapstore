@@ -175,6 +175,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         // of the embed map dialog. TODO: make this more flexible so this is not needed.
 		// ////////////////////////////////////////////////////////////////////////////////////
         config.viewerTools = [
+		    {
+                leaf: true, 
+                text: gxp.plugins.AddLayers.prototype.addActionTip, 
+                checked: true, 
+                iconCls: gxp.plugins.AddLayers.prototype.iconCls,
+                ptype: "gxp_addlayers"
+            },
+			{
+                actions: ["-"], checked: true
+            },
             {
                 leaf: true, 
                 text: gxp.plugins.ZoomToExtent.prototype.tooltip, 
@@ -235,11 +245,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 toggleGroup: this.toggleGroup
             }, {
                 actions: ["-"], checked: true
-            }, {
-                leaf: true, 
-                text: gxp.plugins.GeoReferences.prototype.tooltip, 
-                checked: true, 
-                ptype: "gxp_georeferences"
             }
         ];
 
@@ -347,7 +352,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 icon: Ext.MessageBox.WARNING
             });
         }
-
     },
     
     displayXHRTrouble: function(msg, status) {        
@@ -370,7 +374,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             activeTab:0,
             id: 'west',
             region: "west",
-            width: 250,
+            width: 330,
             split: true,
             collapsible: true,
             collapseMode: "mini",
@@ -387,6 +391,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         this.toolbar = new Ext.Toolbar({
             disabled: true,
             id: 'paneltbar',
+			enableOverflow: true,
             items: this.createTools()
         });
         
@@ -525,6 +530,68 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             "-"
         ];
         return tools;
+    },
+	
+	/** private: method[viewMetadata]
+     */
+    viewMetadata: function(url, uuid, title){
+		var portalContainer = Ext.getCmp(this.renderToTab);
+		
+		var metaURL = url.indexOf("uuid") != -1 ? url : url + '?uuid=' + uuid;
+		
+		var metaPanelOptions = {
+			title: title,
+			items: [ 
+				new Ext.ux.IFrameComponent({ 
+					url: metaURL 
+				}) 
+			]
+		};
+				
+		if(portalContainer instanceof Ext.TabPanel){
+			var tabPanel = portalContainer;
+			
+			var tabs = tabPanel.find('title', title);
+			if(tabs && tabs.length > 0){
+				tabPanel.setActiveTab(tabs[0]); 
+			}else{				
+			
+				metaPanelOptions = Ext.applyIf(metaPanelOptions, {
+					layout:'fit', 
+					tabTip: title,
+					closable: true
+				});
+				
+				var meta = new Ext.Panel(metaPanelOptions);
+				
+				tabPanel.add(meta);
+				meta.items.first().on('render', function() {
+					this.addLoadingMask(meta.items.first());
+				},this);						
+			}
+		}else{		
+		
+			metaPanelOptions = Ext.applyIf(metaPanelOptions, {
+			    layout:'fit', 
+				height: 600
+			});
+			
+			var meta = new Ext.Panel(metaPanelOptions);
+			
+			var metaWin = new Ext.Window({									
+				title: "MetaData",
+				closable: true,
+				width: 800,
+				height: 630,
+				resizable: true,				
+				draggable: true,
+				items: [
+					meta
+				]									
+			});
+			
+			metaWin.show();
+		}
     },
 
     /** private: method[saveAndExport]
@@ -1158,7 +1225,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
     
     /** private: method[getState]
-     *  :returns: ``Òbject`` the state of the viewer
+     *  :returns: ``ï¿½bject`` the state of the viewer
      */
     getState: function() {
         var state = GeoExplorer.superclass.getState.apply(this, arguments);
