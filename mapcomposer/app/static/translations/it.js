@@ -550,6 +550,53 @@ GeoExt.Lang.add("it", {
 		resetText: "Reset",
 		failedUploadingTitle: "Impossibile completare l'upload del file",
 		layerNameLabel: "Nome del Layer"
-	}
+	},
+    
+    "gxp.plugins.DownloadPanel.prototype":{
+        tabTitle: "Download",
+    
+        dselTitle: "Selezione Dati",
+        dselLayer: "Layer",
+        dselCRS: "CRS di output",
+        dselFormat: "Formato",
+        
+        settingTitle: "Impostazioni spaziali",
+        settingSel: "Modalità di Selezione",
+        settingCut: "Modalità di Ritaglio",
+        
+        optTitle: "Impostazioni opzionali",
+        optEmail: "Filtro",
+        optEmail: "Email",
+    
+        resTitle: "Risultati",
+        resID: "ID",
+        resExecID: "execID",
+        resProcStatus: "Stato",
+        resGet: "Vedi",
+        resDelete: "Cancella",
+        resPhase: "Fase",
+        resProgress: "Avanzamento",
+        resResult: "Risultato",
+        
+        btnRefreshTxt: "Ricarica",
+        btnResetTxt: "Pulisci",
+        btnDownloadTxt: "Scarica",
+        
+        errMissParamsTitle: "Parametri mancanti" ,
+        errMissParamsMsg: "Compila tutti i campi obbligatori" ,
+        
+        errMissGeomTitle: "Geometrie mancanti" ,
+        errMissGeomMsg: "Disegna una geometria prima di inviare la richiesta" ,
+    
+        msgRemRunningTitle:"Rimuovi istanza in corso",
+        msgRemRunningMsg:  "Stai per cancellare una istanza in corso, non sarai in grado di recuperare il risultato<br/>Vuoi continuare ?",
+        msgRemTitle: "Rimuovi istanza",
+        msgRemMsg: "Vuoi rimuovere l\'istanza ?",
+        msgRemDone: "Istanza rimossa.",
+        
+        errWPSTitle: "DownloadProcess non supportato",
+        errWPSMsg: "Questo server WPS non supporta il processo gs:Download",
+
+    }
 	
 });
