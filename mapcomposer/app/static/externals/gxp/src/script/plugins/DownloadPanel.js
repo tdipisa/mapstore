@@ -623,6 +623,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 
         optionalSettings = new Ext.form.FieldSet({
             title: this.optTitle,
+            disabled: true,
             items: [
                 /*{ // TODO Disabled due to unimplemented plug-in
                     xtype: "textfield",
@@ -636,8 +637,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     vtype: "email",
                     ref: "../emailField",
                     fieldLabel: this.optEmail,
-                    width: 140,
-                    disabled: false                 
+                    width: 140
                 },
             ]
         });
@@ -685,7 +685,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     id       : 'executionStatus',
                     header   : this.resProcStatus, 
-                    width    : 84, 
+                    width    : 63, 
                     dataIndex: 'executionStatus'
                     ,renderer:  function (val, obj, record) {
                                     if(!val)
@@ -699,7 +699,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     xtype: 'actioncolumn',
                     header: this.resGet, 
-                    width: 30,
+                    width: 36,
                     items: [{
                             getClass: function(v, meta, rec) { 
                                 var tooltip = '', icnClass='decline';
@@ -748,7 +748,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     xtype: 'actioncolumn',
                     header: this.resDelete, 
-                    width: 40,
+                    width: 57,
                     hidden: false,
                     items: [{
                         iconCls: 'reset',
@@ -768,7 +768,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     id       : 'progress',
                     header   : this.resProgress, 
-                    width    : 60, 
+                    width    : 79, 
                     sortable : true, 
                     dataIndex: 'progress'
                 },/*
@@ -781,7 +781,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 },*/{
                     //xtype: 'actioncolumn',
                     header: this.resResult, 
-                    width: 40
+                    width: 53
                     /*items: [{
                             getClass: function(v, meta, rec) { 
                                 var tooltip = '', icnClass='';
