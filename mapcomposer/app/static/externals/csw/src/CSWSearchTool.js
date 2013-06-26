@@ -659,7 +659,9 @@ CSWSearchTool = Ext.extend(Ext.form.FormPanel, {
                 this.catalogDescriptionPanel.update(msgAdded);
                 this.catalogDescriptionPanel.expand();
                 catChooser2.setValue(catChooser2.store.getAt(0).data.url);
-                //this.panel.setSize(this.panel.width -31,this.panel.getHeight);
+                
+                //app.modified = true;
+                
             }else{
                 //hide addCatalogs Window
                 this.newCatalogsWindow.hide();

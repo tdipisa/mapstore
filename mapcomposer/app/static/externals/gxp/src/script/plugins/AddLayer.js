@@ -114,7 +114,7 @@ gxp.plugins.AddLayer = Ext.extend(gxp.plugins.Tool, {
 		};
 		
 		if(this.customParams){
-			Ext.applyIf(
+			props = Ext.applyIf(
 				props,
 				this.customParams
 			);
@@ -137,10 +137,13 @@ gxp.plugins.AddLayer = Ext.extend(gxp.plugins.Tool, {
 		    //
 			// If tabs are used the View tab is Activated
 			//
-			if(this.target.renderToTab && this.enableViewTab){
+			/*if(this.target.renderToTab && this.enableViewTab){
 				var portalContainer = Ext.getCmp(this.target.renderToTab);
-				portalContainer.setActiveTab(1);
-			}					
+				
+				if(portalContainer instanceof Ext.TabPanel){
+					portalContainer.setActiveTab(1);
+				}				
+			}*/					
 						
 			// //////////////////////////
 			// Zoom To Layer extent

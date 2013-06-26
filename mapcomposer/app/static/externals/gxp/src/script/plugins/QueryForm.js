@@ -183,15 +183,17 @@ gxp.plugins.QueryForm = Ext.extend(gxp.plugins.Tool, {
             bbar: ["->", {
                 text: this.cancelButtonText,
                 iconCls: "cancel",
+                scope: this,
                 handler: function() {
+                    this.resetFeatureManager();
                     var ownerCt = this.outputTarget ? queryForm.ownerCt :
                         queryForm.ownerCt.ownerCt;
                     if (ownerCt && ownerCt instanceof Ext.Window) {
                         ownerCt.hide();
                     } else {
-                        addAttributeFilter(
+                        addFilterBuilder(
                             featureManager, featureManager.layerRecord,
-                            featureManater.schema
+                            featureManager.schema
                         );
                     }
                 }
@@ -283,6 +285,10 @@ gxp.plugins.QueryForm = Ext.extend(gxp.plugins.Tool, {
     getFormattedMapExtent: function() {
         var extent = this.target.mapPanel.map.getExtent();
         return extent && extent.toArray().join(", ");
+    },
+    
+    resetFeatureManager: function(){
+        this.target.tools[this.featureManager].featureStore.removeAll();  
     }
         
 });
