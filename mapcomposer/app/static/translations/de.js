@@ -596,7 +596,7 @@ GeoExt.Lang.add("de", {
         errMissGeomMsg: "Bitte zeichnen Sie die Area of ​​Interest vor Einreichung",
    
         msgRemRunningTitle: "Entfernen laufende Instanz",
-        msgRemRunningMsg: "Sie sind dabei, eine laufende Instanz löschen, werden Sie nicht in der Lage sein, um das Ergebnis \ nMöchten Sie wirklich wollen, um beispielsweise retreave löschen",
+        msgRemRunningMsg: "Sie sind dabei, eine laufende Instanz löschen, werden Sie nicht in der Lage sein, um das Ergebnis<br/>Möchten Sie wirklich wollen, um beispielsweise retreave löschen",
         msgRemTitle: "Remove Instance",
         msgRemMsg: "Wollen Sie etwa zu löschen",
         msgRemDone: "Instanz entfernt.",

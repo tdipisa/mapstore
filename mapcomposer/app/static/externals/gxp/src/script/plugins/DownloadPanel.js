@@ -187,7 +187,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     errMissGeomMsg: "Please draw the Area of Interest before submitting" ,
 
     msgRemRunningTitle:"Remove Running Instance",
-    msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retreave the result\nDo you really want to delete instance ?",
+    msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retreave the result<br/>Do you really want to delete instance ?",
     msgRemTitle: "Remove Instance",
     msgRemMsg: "Do you want to delete instance ?",
     msgRemDone: "Instance removed.",
@@ -244,14 +244,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					// //////////////////////////////////////////////////////
 					this.spatialSelection.removeAllFeatures();
 				});
-                /*
-                this.spatialSelection.events.register("featureadded", this, function(feature){
-                    var formatwkt = new OpenLayers.Format.WKT();
-
-                    this.wkt = formatwkt.write(feature);
-                    console.log(this.wkt);
-                });
-				*/
+               
 				var ev = map.events.register('addlayer', this, function(e){
 					if( e.layer == this.spatialSelection ) 
 						return;
@@ -948,15 +941,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      * private 
      */        
     executeCallback: function(instanceOrRawData){
-        //console.log(instanceOrRawData);
-        /*
-        Ext.Msg.show({
-            title: "Execute Response" ,
-            msg: Ext.encode(instanceOrRawData),
-            buttons: Ext.Msg.OK,
-            icon: Ext.Msg.INFO
-        });
-        */
         var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
         task.delay(1000); 
         //setTimeout("getInstances(false)", 1000);
@@ -1092,6 +1076,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var id = rec.get('id');
             
             if(rec.get('executionStatus')=='Accepted'){
+                
                 Ext.Msg.show({
                    title: this.msgRemRunningTitle,
                    msg: this.msgRemRunningMsg,
@@ -1122,16 +1107,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     },
                     
     removeInstance: function(instanceID){
-        var title = this.msgRemTitle;
-        var msg = this.msgRemDone;
-        this.wpsManager.deleteExecuteInstance(instanceID, function(instances){
-            Ext.Msg.show({
-                title: title,
-                msg: msg,
-                buttons: Ext.Msg.OK,
-                icon: Ext.Msg.INFO
-            });
-        });
+        this.wpsManager.deleteExecuteInstance(instanceID);
         this.getInstances(false);
     },
     
