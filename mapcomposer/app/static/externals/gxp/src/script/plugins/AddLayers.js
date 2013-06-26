@@ -344,7 +344,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 this.sourceComboBox
             ];
         }
-        /*  // TODO excluded for demo
+        
         if (this.target.proxy) {
             capGridToolbar.push("-", new Ext.Button({
                 text: this.addServerText,
@@ -354,7 +354,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 }
             }));
         }
-        */
+        
         var newSourceWindow = new gxp.NewSourceWindow({
             modal: true,
             listeners: {
