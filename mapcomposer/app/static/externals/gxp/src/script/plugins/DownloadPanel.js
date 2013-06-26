@@ -443,6 +443,39 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								this.target.mapPanel.layers.remove(this.selectedLayer);
 							}
 							
+                            var Request = Ext.Ajax.request({
+                                url: this.wpsProxy + encodeURIComponent(this.wpsUrl+"&version=1.0.0&request=DescribeProcess&identifier=gs:Download"),
+                                method: 'GET',
+                                scope: this,
+                                success: function(response, opts){
+                                    if(response.responseXML){
+                                        var xml= response.responseXML;
+                                        if(xml.getElementsByTagName("ProcessDescription").length == 0){
+                                            Ext.Msg.show({
+                                                title: 'DownloadProcess not supported',
+                                                msg: 'This WPS server does not support gs:Download process',
+                                                buttons: Ext.Msg.OK,
+                                                icon: Ext.MessageBox.ERROR
+                                            });
+                                            this.formPanel.downloadButton.disable();
+                                        }else
+                                        {
+                                            this.formPanel.downloadButton.enable();
+                                        }
+                                    }else{
+                                        Ext.Msg.show({
+                                            title: 'Cannot read response',
+                                            msg: response.statusText + "(status " + response.status + "):  " + response.responseText,
+                                            buttons: Ext.Msg.OK,
+                                            icon: Ext.MessageBox.ERROR
+                                        });   
+                                    }
+                                },
+                                failure: function(response, opts){
+                                    console.error(response);
+                                }
+                            });     
+        
 							// ////////////////////////////
 							// Add the new selected layer.
 							// ////////////////////////////
@@ -777,26 +810,27 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				'->',
 				{
 					text: "Refresh",
+                    ref: '../refreshButton',
+                    cls: 'x-btn-text-icon',
+                    icon :'theme/app/img/silk/arrow_refresh.png',
 					scope: this,
-					handler: //function(){
-						//this.getInstances(true);
-						//this.startRunner();
-						function(){
-                            
-                            // reset pending
-                            this.pendingRows = 0;
-            
-                            store.each(this.updateRecord, this);
-            
-                            // Stop if nothing left pending
-                            if(this.pendingRows <= 0){
-                                return false;
-                            }
-                        },
-                        scope:this
+					handler: function(){                           
+                        // reset pending
+                        this.pendingRows = 0;
+        
+                        store.each(this.updateRecord, this);
+        
+                        // Stop if nothing left pending
+                        if(this.pendingRows <= 0){
+                            return false;
+                        }
+                    }
 				},
                 {
                     text: "Reset",
+                    ref: '../resetButton',
+                    cls: 'x-btn-text-icon',
+                    icon :'theme/app/img/silk/page_white.png',
                     scope: this,
                     handler: function(){
                         // ////////////////////////////////////////
@@ -815,7 +849,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 },
 				{
 					text: "Download",
-					type: 'submit',	
+					type: 'submit',
+					ref: '../downloadButton',
+					cls: 'x-btn-text-icon',
+					icon :'theme/app/img/download.png',
 					handler: function(){
 					    var layerCombo = downloadForm.layerCombo.isValid();
 						var crsCombo = downloadForm.crsCombo.isValid();
