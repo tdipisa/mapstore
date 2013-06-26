@@ -277,7 +277,7 @@ font-family: tahoma, arial, helvetica, sans-serif;
     height:16px;
 }
 
-.x-action-col-cell  .download{
+.x-action-col-cell  .download, .x-btn .download{
     background-image: url(img/download.png) !important;
     width:16px;
     height:16px;

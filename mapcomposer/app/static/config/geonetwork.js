@@ -89,6 +89,7 @@
 			"ptype": "gxp_metadataexplorer",
 			"id": "metadataexplorer",
             "outputTarget": "south",
+			"saveState": true,
             "cswconfig": {
                 "catalogs": [
                         {"name": "CSI Piemonte", "url": "http://www.ruparpiemonte.it/geocatalogorp/geonetworkrp/srv/it/csw", "description": "GeoPortale della Regione Piemonte"},
@@ -116,17 +117,21 @@
                 "timeout": 60000
             }            
 		}, {
-			"ptype": "gxp_reversegeocoder",
-			"outputTarget":"paneltbar",
-			"outputConfig": {
-				"width": "200"
-			},
-			"index": 26
-		}, {
-			"ptype": "gxp_dynamicgeocoder",
-			"outputTarget":"paneltbar",
-			"id": "dynamicgeocoder",
-			"index": 27
+            "ptype": "gxp_reversegeocoder",
+            "outputTarget":"paneltbar",
+            "outputConfig": {
+                "width": "200"
+            },
+            "index": 26
+        }, {
+            "ptype": "gxp_dynamicgeocoder",
+            "outputTarget":"paneltbar",
+            "id": "dynamicgeocoder",
+            "index": 27
+        }, {
+			"ptype": "gxp_geolocationmenu",
+			"outputTarget": "paneltbar",
+			"index": 23
 		}, {
 			"ptype": "gxp_addlayer",
 			"showCapabilitiesGrid": true,
