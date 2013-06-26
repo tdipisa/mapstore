@@ -517,5 +517,53 @@ GeoExt.Lang.add("en", {
 		resetText: "Reset",
 		failedUploadingTitle: "Cannot upload file",
 		layerNameLabel: "Layer Name"
+    },
+    
+    "gxp.plugins.DownloadPanel.prototype":{
+        tabTitle: "Download",
+    
+        dselTitle: "Data Selection",
+        dselLayer: "Layer",
+        dselCRS: "Target CRS",
+        dselFormat: "Format",
+        
+        settingTitle: "Spatial Settings",
+        settingSel: "Selection Mode",
+        settingCut: "Cut Mode",
+        
+        optTitle: "Optional Settings",
+        optEmail: "Filter",
+        optEmail: "Email",
+    
+        resTitle: "Results",
+        resID: "ID",
+        resExecID: "execID",
+        resProcStatus: "Process Status",
+        resGet: "Get",
+        resDelete: "Delete",
+        resPhase: "Phase",
+        resProgress: "Progress",
+        resResult: "Result",
+        
+        btnRefreshTxt: "Refresh",
+        btnResetTxt: "Reset",
+        btnDownloadTxt: "Download",
+        
+        errMissParamsTitle: "Missing parameters" ,
+        errMissParamsMsg: "Please fill all the mandatory fields" ,
+        
+        errMissGeomTitle: "Missing feature" ,
+        errMissGeomMsg: "Please draw the Area of Interest before submitting" ,
+    
+        msgRemRunningTitle:"Remove Running Instance",
+        msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retreave the result\nDo you really want to delete instance ?",
+        msgRemTitle: "Remove Instance",
+        msgRemMsg: "Do you want to delete instance ?",
+        msgRemDone: "Instance removed.",
+        
+        errWPSTitle: "DownloadProcess not supported",
+        errWPSMsg: "This WPS server does not support gs:Download process",
+
     }
+
 });

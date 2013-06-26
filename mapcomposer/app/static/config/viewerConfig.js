@@ -27,7 +27,7 @@
     },
 	
 	"customTools":[
-	    {
+		{
 			"ptype": "gxp_geolocationmenu",
 			"outputTarget": "paneltbar",
 			"index": 23

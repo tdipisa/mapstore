@@ -556,6 +556,55 @@ GeoExt.Lang.add("de", {
 		resetText: "Zurücksetzen",
 		failedUploadingTitle: "Kann Datei nicht hochladen",
 		layerNameLabel: "Layername"
-	}
+	},
+
+    "gxp.plugins.DownloadPanel.prototype":{
+         
+        tabTitle: "Downloaden",
+    
+        dselTitle: "Daten auswahl",
+        dselLayer: "Layer",
+        dselCRS: "Target CRS",
+        dselFormat: "Format",
+       
+        settingTitle: "Spatial Einstellungen",
+        settingSel: "Auswahl-Modus",
+        settingCut: "Cut Mode",
+       
+        optTitle: "Optionale Einstellungen",
+        optEmail: "Filter",
+        optEmail: "E-Mail",
+   
+        resTitle: "Ergebnisse",
+        resID: "ID",
+        resExecID: "execID",
+        resProcStatus: "Prozess-Status",
+        resGet: "Get",
+        resDelete: "Löschen",
+        resPhase: "Phase",
+        resProgress: "Progress",
+        resResult: "Ergebnis",
+       
+        btnRefreshTxt: "Erfrischen",
+        btnResetTxt: "Zurücksetzen",
+        btnDownloadTxt: "Downloaden",
+       
+        errMissParamsTitle: "Fehlende Parameter",
+        errMissParamsMsg: "Bitte füllen Sie alle Pflichtfelder",
+       
+        errMissGeomTitle: "Fehlende Funktion",
+        errMissGeomMsg: "Bitte zeichnen Sie die Area of ​​Interest vor Einreichung",
+   
+        msgRemRunningTitle: "Entfernen laufende Instanz",
+        msgRemRunningMsg: "Sie sind dabei, eine laufende Instanz löschen, werden Sie nicht in der Lage sein, um das Ergebnis \ nMöchten Sie wirklich wollen, um beispielsweise retreave löschen",
+        msgRemTitle: "Remove Instance",
+        msgRemMsg: "Wollen Sie etwa zu löschen",
+        msgRemDone: "Instanz entfernt.",
+       
+        errWPSTitle: "DownloadProcess nicht unterstützt",
+        errWPSMsg: "Das WPS-Server nicht unterstützt gs: Download-Prozess"
+         
+    }
+
 
 });

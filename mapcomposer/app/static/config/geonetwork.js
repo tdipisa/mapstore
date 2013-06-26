@@ -109,9 +109,6 @@
 			"outputTarget": "paneltbar",
 			"index": 23
 		}, {
-			"actions": ["->"], 
-			"actionTarget": "paneltbar"
-		}, {
 			"ptype": "gxp_addlayer",
 			"showCapabilitiesGrid": true,
 			"id": "addlayer"

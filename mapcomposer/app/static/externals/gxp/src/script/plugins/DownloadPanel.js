@@ -151,6 +151,50 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
     wpsManager: null,
     
+    tabTitle: "Download",
+    
+    dselTitle: "Data Selection",
+    dselLayer: "Layer",
+    dselCRS: "Target CRS",
+    dselFormat: "Format",
+    
+    settingTitle: "Spatial Settings",
+    settingSel: "Selection Mode",
+    settingCut: "Cut Mode",
+    
+    optTitle: "Optional Settings",
+    optEmail: "Filter",
+    optEmail: "Email",
+
+    resTitle: "Results",
+    resID: "ID",
+    resExecID: "execID",
+    resProcStatus: "Process Status",
+    resGet: "Get",
+    resDelete: "Delete",
+    resPhase: "Phase",
+    resProgress: "Progress",
+    resResult: "Result",
+    
+    btnRefreshTxt: "Refresh",
+    btnResetTxt: "Reset",
+    btnDownloadTxt: "Download",
+    
+    errMissParamsTitle: "Missing parameters" ,
+    errMissParamsMsg: "Please fill all the mandatory fields" ,
+    
+    errMissGeomTitle: "Missing feature" ,
+    errMissGeomMsg: "Please draw the Area of Interest before submitting" ,
+
+    msgRemRunningTitle:"Remove Running Instance",
+    msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retreave the result\nDo you really want to delete instance ?",
+    msgRemTitle: "Remove Instance",
+    msgRemMsg: "Do you want to delete instance ?",
+    msgRemDone: "Instance removed.",
+    
+    errWPSTitle: "DownloadProcess not supported",
+    errWPSMsg: "This WPS server does not support gs:Download process",
+    
     /** private: method[constructor]
      */
     constructor: function(config) {
@@ -411,12 +455,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// FieldSet definitions.
 		// /////////////////////////////////////
 		this.laySel = new Ext.form.FieldSet({
-			title: "Data Selection",
+			title: this.dselTitle,
 			items: [
 				{
 					xtype: "combo",
 					ref: "../layerCombo",
-					fieldLabel: "Layer",
+					fieldLabel: this.dselLayer,
 					width: 140,
 					mode: 'local',
 					triggerAction: 'all',
@@ -452,8 +496,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                         var xml= response.responseXML;
                                         if(xml.getElementsByTagName("ProcessDescription").length == 0){
                                             Ext.Msg.show({
-                                                title: 'DownloadProcess not supported',
-                                                msg: 'This WPS server does not support gs:Download process',
+                                                title: this.errWPSTitle,
+                                                msg: this.errWPSMsg,
                                                 buttons: Ext.Msg.OK,
                                                 icon: Ext.MessageBox.ERROR
                                             });
@@ -506,7 +550,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				{
 					xtype: "combo",
 					ref: "../crsCombo",
-					fieldLabel: "Target CRS",
+					fieldLabel: this.dselCRS,
 					width: 140,
 					mode: 'local',
 					triggerAction: 'all',
@@ -523,7 +567,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				{
 					xtype: "combo",
 					ref: "../formatCombo",
-					fieldLabel: "Format",
+					fieldLabel: this.dselFormat,
 					width: 140,
 				    mode: 'local',
 					triggerAction: 'all',
@@ -538,12 +582,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		});
 
 		spatialSettings = new Ext.form.FieldSet({
-			title: "Spatial Settings",
+			title: this.settingTitle,
 			items: [
 				{
 					xtype: 'radiogroup',
 					ref: "../selectionMode",
-					fieldLabel: 'Selection Mode',
+					fieldLabel: this.settingSel,
 					itemCls: 'x-check-group-alt',
 					columns: 1,
 					width: 140,
@@ -571,7 +615,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			    {
 					xtype: 'radiogroup',
 					ref: "../cutMode",
-					fieldLabel: 'Cut Mode',
+					fieldLabel: this.settingCut,
 					itemCls: 'x-check-group-alt',
 					columns: 1,
 					items: [
@@ -583,12 +627,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		});
 
         optionalSettings = new Ext.form.FieldSet({
-            title: "Optional Settings",
+            title: this.optTitle,
             items: [
                 /*{ // TODO Disabled due to unimplemented plug-in
                     xtype: "textfield",
                     ref: "../filterField",
-                    fieldLabel: "Filter",
+                    fieldLabel: this.optFilter,
                     width: 140,
                     disabled: false                 
                 },*/
@@ -596,7 +640,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     xtype: "textfield",
                     vtype: "email",
                     ref: "../emailField",
-                    fieldLabel: "Email",
+                    fieldLabel: this.optEmail,
                     width: 140,
                     disabled: false                 
                 },
@@ -631,21 +675,21 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             columns: [
                 {
                     id       : 'id',
-                    header   : 'ID', 
+                    header   : this.resID, 
                     width    : 30, 
                     hidden : true, 
                     dataIndex: 'id'
                 },
                 {
                     id       : 'executionId',
-                    header   : 'execID', 
+                    header   : this.resExecID, 
                     width    : 45, 
                     sortable : true, 
                     dataIndex: 'executionId'
                 },
                 {
                     id       : 'executionStatus',
-                    header   : 'Process Status', 
+                    header   : this.resProcStatus, 
                     width    : 84, 
                     dataIndex: 'executionStatus'
                     ,renderer:  function (val, obj, record) {
@@ -659,7 +703,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 },
                 {
                     xtype: 'actioncolumn',
-                    header: 'Get', 
+                    header: this.resGet, 
                     width: 30,
                     items: [{
                             getClass: function(v, meta, rec) { 
@@ -708,19 +752,19 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 },
                 {
                     xtype: 'actioncolumn',
-                    header: 'Delete', 
+                    header: this.resDelete, 
                     width: 40,
                     hidden: false,
                     items: [{
                         iconCls: 'reset',
-                        tooltip: 'Delete',
+                        tooltip: this.resDelete,
                         handler: this.deleteHandler
                         ,scope: this
                     }]
                     ,scope:this
                 },{
                     id       : 'phase',
-                    header   : 'PHASE', 
+                    header   : this.resPhase, 
                     width    : 60, 
                     sortable : true, 
                     hidden   : true,
@@ -728,7 +772,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 },
                 {
                     id       : 'progress',
-                    header   : 'Progress', 
+                    header   : this.resProgress, 
                     width    : 60, 
                     sortable : true, 
                     dataIndex: 'progress'
@@ -741,7 +785,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     dataIndex: 'result'
                 },*/{
                     //xtype: 'actioncolumn',
-                    header: 'Result', 
+                    header: this.resResult, 
                     width: 40
                     /*items: [{
                             getClass: function(v, meta, rec) { 
@@ -773,7 +817,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             //autoExpandColumn: 'description',
             height: 150,
             //width: 600,
-            title: 'Results',
+            title: this.resTitle,
             /*
             // config options for stateful behavior, cookie
             stateful: true,
@@ -796,7 +840,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// FormPanel definition
 		// /////////////////////////////////////
 		var downloadForm = new Ext.form.FormPanel({
-			title: "Download",
+			title: this.tabTitle,
 			labelWidth: 80,
             autoHeight: true,
 			monitorValid: true,
@@ -809,7 +853,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			buttons:[
 				'->',
 				{
-					text: "Refresh",
+					text: this.btnRefreshTxt,
                     ref: '../refreshButton',
                     cls: 'x-btn-text-icon',
                     icon :'theme/app/img/silk/arrow_refresh.png',
@@ -827,7 +871,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     }
 				},
                 {
-                    text: "Reset",
+                    text: this.btnResetTxt,
                     ref: '../resetButton',
                     cls: 'x-btn-text-icon',
                     icon :'theme/app/img/silk/page_white.png',
@@ -848,7 +892,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     }
                 },
 				{
-					text: "Download",
+					text: this.btnDownloadTxt,
 					type: 'submit',
 					ref: '../downloadButton',
 					cls: 'x-btn-text-icon',
@@ -860,23 +904,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var selectionMode = downloadForm.selectionMode.isValid();
 						//var bufferField = downloadForm.bufferField.isValid();
 						var cutMode = downloadForm.cutMode.isValid();
-						
-						// DEBUG
-						/*
-						var alle = "";
-						var fv = downloadForm.getForm().getFieldValues();
-                        for(var key in fv)
-                            alle += ("["+key+"] = "+fv[key]+"\n");
-                        alert(alle);
-						*////
-						
+												
 						var isValid = layerCombo && crsCombo && formatCombo && 
 							selectionMode  && cutMode; //&& bufferField
 						
 						if(!isValid){
 						    Ext.Msg.show({
-                                title: "Missing parameters" ,
-                                msg: "Please fill all the mandatory fields",
+                                title: this.errMissParamsTitle,
+                                msg: this.errMissParamsMsg,
                                 buttons: Ext.Msg.OK,
                                 icon: Ext.Msg.INFO
                             });
@@ -888,8 +923,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     						// startRunner()
 						}else{
                             Ext.Msg.show({
-                                title: "Missing feature" ,
-                                msg: "Please draw the Area of Interest before submitting",
+                                title: this.errMissGeomTitle ,
+                                msg: this.errMissGeomMsg,
                                 buttons: Ext.Msg.OK,
                                 icon: Ext.Msg.INFO
                             });
@@ -912,12 +947,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */        
     executeCallback: function(instanceOrRawData){
         //console.log(instanceOrRawData);
+        /*
         Ext.Msg.show({
             title: "Execute Response" ,
             msg: Ext.encode(instanceOrRawData),
             buttons: Ext.Msg.OK,
             icon: Ext.Msg.INFO
         });
+        */
         var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
         task.delay(1000); 
         //setTimeout("getInstances(false)", 1000);
@@ -1054,8 +1091,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             
             if(rec.get('executionStatus')=='Accepted'){
                 Ext.Msg.show({
-                   title: "Remove Running Instance",
-                   msg: "You are about to delete a running instance, you will not be able to retreave the result\nDo you really want to delete instance "+id+"?",
+                   title: this.msgRemRunningTitle,
+                   msg: this.msgRemRunningMsg,
                    buttons: Ext.Msg.OKCANCEL,
                    fn: function(btn){
                         if(btn == 'ok') 
@@ -1068,8 +1105,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }else{
                 
                 Ext.Msg.show({
-                   title: "Remove Instance",
-                   msg: "Do you want to delete instance "+id+"?",
+                   title: this.msgRemTitle,
+                   msg: this.msgRemMsg,
                    buttons: Ext.Msg.OKCANCEL,
                    fn: function(btn){
                         if(btn == 'ok') 
@@ -1085,8 +1122,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     removeInstance: function(instanceID){
         this.wpsManager.deleteExecuteInstance(instanceID, function(instances){
             Ext.Msg.show({
-                title: "Remove Instance",
-                msg: "Instance " + instanceID+ " removed.",
+                title: this.msgRemTitle,
+                msg: this.msgRemDone,
                 buttons: Ext.Msg.OK,
                 icon: Ext.Msg.INFO
             });
