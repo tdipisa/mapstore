@@ -220,8 +220,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						this.formatStore.removeAll();
 						if(layerRecord.data.wcs === true){
 							this.formatStore.loadData(this.formats.wcs, false);
+							this.spatialSettings.cutMode.disable();
 						}else{
 							this.formatStore.loadData(this.formats.wfs, false);
+                            this.spatialSettings.cutMode.enable();
 						}
 					},
 					scope: this
@@ -581,7 +583,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			]
 		});
 
-		spatialSettings = new Ext.form.FieldSet({
+		this.spatialSettings = new Ext.form.FieldSet({
 			title: this.settingTitle,
 			items: [
 				{
@@ -614,7 +616,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				},*/
 			    {
 					xtype: 'radiogroup',
-					ref: "../cutMode",
+					ref: "cutMode",
 					fieldLabel: this.settingCut,
 					itemCls: 'x-check-group-alt',
 					columns: 1,
@@ -846,7 +848,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			monitorValid: true,
 			items:[
 				this.laySel,
-				spatialSettings,
+				this.spatialSettings,
 				optionalSettings,
 				this.resultPanel
 			],
