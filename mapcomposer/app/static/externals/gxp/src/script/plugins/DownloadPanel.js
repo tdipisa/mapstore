@@ -874,7 +874,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     text: this.btnResetTxt,
                     ref: '../resetButton',
                     cls: 'x-btn-text-icon',
-                    icon :'theme/app/img/silk/page_white.png',
+                    icon :'theme/app/img/silk/application_form_delete.png',
                     scope: this,
                     handler: function(){
                         // ////////////////////////////////////////
@@ -1120,10 +1120,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     },
                     
     removeInstance: function(instanceID){
+        var title = this.msgRemTitle;
+        var msg = this.msgRemDone;
         this.wpsManager.deleteExecuteInstance(instanceID, function(instances){
             Ext.Msg.show({
-                title: this.msgRemTitle,
-                msg: this.msgRemDone,
+                title: title,
+                msg: msg,
                 buttons: Ext.Msg.OK,
                 icon: Ext.Msg.INFO
             });
