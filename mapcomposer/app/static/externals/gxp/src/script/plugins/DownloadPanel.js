@@ -162,9 +162,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     settingSel: "Selection Mode",
     settingCut: "Cut Mode",
     
-    optTitle: "Optional Settings",
+/*     optTitle: "Optional Settings",
     optEmail: "Filter",
-    optEmail: "Email",
+    optEmail: "Email", */
+    
+    emailNotificationTitle: "Email notification",
+    emailFieldLabel: "Email",
 
     resTitle: "Results",
     resID: "ID",
@@ -621,9 +624,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			]
 		});
 
-        optionalSettings = new Ext.form.FieldSet({
-            title: this.optTitle,
-            disabled: true,
+        this.emailNotification = new Ext.form.FieldSet({
+            title: this.emailNotificationTitle,
+            checkboxToggle: true,
+            ref: "emailNotification",
             items: [
                 /*{ // TODO Disabled due to unimplemented plug-in
                     xtype: "textfield",
@@ -635,10 +639,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 {
                     xtype: "textfield",
                     vtype: "email",
+                    allowBlank: false,
                     ref: "../emailField",
-                    fieldLabel: this.optEmail,
+                    fieldLabel: this.emailFieldLabel,
                     width: 140
-                },
+                }
             ]
         });
 
@@ -842,7 +847,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			items:[
 				this.laySel,
 				this.spatialSettings,
-				optionalSettings,
+				this.emailNotification,
 				this.resultPanel
 			],
 			buttons:[
@@ -899,9 +904,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var selectionMode = downloadForm.selectionMode.isValid();
 						//var bufferField = downloadForm.bufferField.isValid();
 						var cutMode = downloadForm.cutMode.isValid();
+                        var email = true;
+                        if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
+                            email = downloadForm.emailField.isValid();
+                        }
 												
 						var isValid = layerCombo && crsCombo && formatCombo && 
-							selectionMode  && cutMode; //&& bufferField
+							selectionMode  && cutMode && email; //&& bufferField
 						
 						if(!isValid){
 						    Ext.Msg.show({
