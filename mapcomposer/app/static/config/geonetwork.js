@@ -159,7 +159,17 @@
 				["EPSG:4258"],
 				["EPSG:4326"],
 				["EPSG:900913"]
-			]
+			],
+            "gazetteerConfig": {
+                "addressUrl": "http://sdi.provinz.bz.it/routingservice/rest/gazetteer/GeocodeServer/findAddressCandidates",
+                "gazetteerUrl": "http://sdi.provinz.bz.it:8080/deegree-webservices-3.1.1/services?service=WFS",
+                "srsName": "EPSG:900913",
+                "featureNS": "urn:x-inspire:specification:gmlas:GeographicalNames:3.0",
+                "featurePrefix": "gn",
+                "featureType": "NamedPlace",
+                "geometryName": "geometry",
+                "filterProperty": "gn:name/gn:GeographicalName/gn:spelling/gn:SpellingOfName/gn:text"
+            }
 		}
 	],
     "proj4jsDefs":{

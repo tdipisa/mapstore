@@ -1,11 +1,11 @@
 {
-   "geoStoreBase": "",
+   "geoStoreBase": "http://localhost:8080/geostore/rest/",
    "proxy":"/http_proxy/proxy/?url=",
-   "defaultLanguage": "en",
+   "defaultLanguage": "it",
    "gsSources":{ 
 		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://localhost:8080/geoserver/ows",
+			"url": "http://localhost:8080/geoserverbz/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
 				"TILED": true,
@@ -156,7 +156,7 @@
 			"ptype": "gxp_download",
 			"outputTarget": "west",
 			"index": 28,
-			"wpsUrl": "http://localhost:8080/geoserver/ows?service=WPS",
+			"wpsUrl": "http://localhost:8080/geoserverbz/ows?service=WPS",
 			"wpsProxy": "/proxy/?url=",
 			"geostoreUrl": "http://localhost:8080/geostore/rest",
             "geostoreProxy": "/proxy/?url=",
@@ -189,7 +189,17 @@
 				["EPSG:4258"],
 				["EPSG:4326"],
 				["EPSG:900913"]
-			]
+			],
+            "gazetteerConfig": {
+                "addressUrl": "http://sdi.provinz.bz.it/routingservice/rest/gazetteer/GeocodeServer/findAddressCandidates",
+                "gazetteerUrl": "http://sdi.provinz.bz.it:8080/deegree-webservices-3.1.1/services?service=WFS",
+                "srsName": "EPSG:900913",
+                "featureNS": "urn:x-inspire:specification:gmlas:GeographicalNames:3.0",
+                "featurePrefix": "gn",
+                "featureType": "NamedPlace",
+                "geometryName": "geometry",
+                "filterProperty": "gn:name/gn:GeographicalName/gn:spelling/gn:SpellingOfName/gn:text"
+            }
 		}	
 	],
     "proj4jsDefs":{

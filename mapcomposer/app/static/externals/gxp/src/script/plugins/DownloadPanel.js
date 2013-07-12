@@ -151,6 +151,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
     wpsManager: null,
     
+    /** api: config[gazetteerConfig]
+     *  ``Object``
+     */
+    gazetteerConfig: null,
+    
     tabTitle: "Download",
     
     dselTitle: "Data Selection",
@@ -168,6 +173,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     
     emailNotificationTitle: "Email notification",
     emailFieldLabel: "Email",
+    
+    placeSearchLabel: "Place",
 
     resTitle: "Results",
     resID: "ID",
@@ -259,6 +266,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				this.drawControls = {
 					polygon: new OpenLayers.Control.DrawFeature(this.spatialSelection,
 						OpenLayers.Handler.Polygon),
+					circle: new OpenLayers.Control.DrawFeature(this.spatialSelection,
+						OpenLayers.Handler.RegularPolygon, {handlerOptions: {sides: 30}}),
                     box: new OpenLayers.Control.DrawFeature(this.spatialSelection,
                         OpenLayers.Handler.RegularPolygon, {
                             handlerOptions: {
@@ -414,17 +423,21 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// selection control.
 		// ////////////////////////////////////////////////
 		this.spatialSelection.removeAllFeatures();
-		
-		for(key in this.drawControls) {
-			var control = this.drawControls[key];
-			if(element && element.value == key && element.checked) {
-				control.activate();
-			} else {
-				control.deactivate();
-			}
-		}
+        if(element && element.value == 'place' && element.checked) {
+            this.formPanel.placeSearch.show();
+        } else {
+            this.formPanel.placeSearch.hide();
+        }
+        for(key in this.drawControls) {
+            var control = this.drawControls[key];
+            if(element && element.value == key && element.checked) {
+                control.activate();
+            } else {
+                control.deactivate();
+            }
+        }
 	},
-	
+    
     /** private: method[addOutput]
      *  :arg config: ``Object``
 	 * 
@@ -578,6 +591,23 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				}
 			]
 		});
+        
+        this.placeSearch = new gxp.GazetteerCombobox(Ext.apply(this.gazetteerConfig, {
+            xtype: 'gazetteercombobox',
+            fieldLabel: this.placeSearchLabel,
+            hidden: true,
+            ref: "../placeSearch",
+            listeners: {
+                scope: this,
+                'select': function(store, record) {
+                    var feature = record.data.feature;
+                    var bounds = feature.geometry.getBounds();
+                    
+                    this.spatialSelection.addFeatures([feature]);
+                    this.target.mapPanel.map.zoomToExtent(bounds);
+                }
+            }
+        }));
 
 		this.spatialSettings = new Ext.form.FieldSet({
 			title: this.settingTitle,
@@ -593,7 +623,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					items: [
 						{boxLabel: 'Box', name: 'cb-col-1', value: 'box'}
 						,{boxLabel: 'Polygon', name: 'cb-col-1', value: 'polygon'}
-						//,{boxLabel: 'Place', name: 'cb-col-1', value: 'place'}
+						,{boxLabel: 'Circle', name: 'cb-col-1', value: 'circle'}
+						,{boxLabel: 'Place', name: 'cb-col-1', value: 'place'}
 					],
 					listeners: {
 						scope: this,
@@ -602,6 +633,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}
 					}
 				},
+                this.placeSearch,
 				/*
 				{
 					xtype: "numberfield",
