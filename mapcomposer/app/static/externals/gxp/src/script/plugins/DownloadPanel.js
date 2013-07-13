@@ -211,6 +211,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     errWPSMsg: "This WPS server does not support gs:Download process",
 	wpsErrorMsg: "The WPS reports the following error",
     
+    errBufferTitle: "Buffer failed",
+    errBufferMsg: "Error buffering feature",
+    
     /** private: method[constructor]
      */
     constructor: function(config) {
@@ -266,6 +269,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					// //////////////////////////////////////////////////////
                     if(!this.spatialSelection._preventBufferReset) {
                         this.formPanel.bufferField.reset();
+                        this.spatialSelection.removeAllFeatures();
                     }
 				});
                 this.spatialSelection.events.register("featureadded", this, function(){
@@ -440,6 +444,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
 	resetForm: function(){
 		this.formPanel.getForm().reset();
+        this.spatialSelection.removeAllFeatures();
 	},
 	
     /** private: method[toggleControl]
@@ -454,6 +459,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// ////////////////////////////////////////////////
 		this.spatialSelection.removeAllFeatures();
         this.formPanel.bufferField.reset();
+
         if(value == 'place') {
             this.formPanel.placeSearch.show();
         } else {
@@ -583,11 +589,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									options
 								);
 							}
+                            
+                            this.spatialSelection.removeAllFeatures();
+                            this.updateFormStatus();
 						}, 
 						beforequery: function(){
 							this.reloadLayers();
-						},
-                        change: this.updateFormStatus
+						}
 					}
 				},
 				{
@@ -608,11 +616,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					allowBlank: false,
                     listeners: {
                         scope: this,
-                        change: function() {
+                        select: function() {
                             this.spatialSettings.items.each(function(field) {
                                 field.reset();
                             });
-                            this.formPanel.bufferField.reset();
+                            this.spatialSelection.removeAllFeatures();
                             this.updateFormStatus();
                         }
                     }
@@ -689,8 +697,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						scope: this,
 						select: function(combo){
 							this.toggleControl(combo.getValue());
-						},
-                        change: this.updateFormStatus
+                            this.updateFormStatus();
+						}
 					}
 				},
                 this.placeSearch,
@@ -704,26 +712,29 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     listeners: {
                         scope: this,
                         keyup: function(field) {
-                            var me = this;
-                            
-                            me.formPanel.downloadButton.disable();
-                            me.formPanel.resetButton.disable();
-                            me.formPanel.refreshButton.disable();
-                            
-                            //set a timeout to enable buttons if the buffer request fails
-                            if(me.bufferEnableButtonsTimeout) clearTimeout(me.bufferEnableButtonsTimeout);
-                            me.bufferEnableButtonsTimeout = setTimeout(function() {
-                                
-                                me.formPanel.bufferField.reset();
-                                me.formPanel.downloadButton.enable();
-                                me.formPanel.resetButton.enable();
-                                me.formPanel.refreshButton.enable();
-                            }, 30 * 1000);
-                            
+                            var me = this,
+                                value = field.getValue();
+
+                            // whatever value, clear the timeouts
+                            if(me.bufferHideLoadMaskTimeout) clearTimeout(me.bufferHideLoadMaskTimeout);
                             if(me.bufferTimeout) clearTimeout(me.bufferTimeout);
-                            me.bufferTimeout = setTimeout(function() {
-                                me.bufferSpatialSelection(field.getValue());
-                            }, me.bufferRequestTimeout);
+                                
+                            if(!value) {
+                                //if value is empty and we have an unBufferedFeature stored, replace the buffered feature with the un-buffered one. The user deleted the buffer value, so he wants the original geometry back
+                                if(me.unBufferedFeature) {
+                                    this.spatialSelection.addFeatures([me.unBufferedFeature]);
+                                }
+                            } else {
+                                //set a timeout to hide the loadmask if the buffer request fails
+                                me.bufferHideLoadMaskTimeout = setTimeout(function() {
+                                    
+                                    me.loadMask.hide();
+                                }, 30 * 1000);
+
+                                me.bufferTimeout = setTimeout(function() {
+                                    me.bufferSpatialSelection(value);
+                                }, me.bufferRequestTimeout);
+                            }
                         }
                     }
 				},
@@ -1425,13 +1436,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         }
         
         if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()) {
-            this.spatialSettings.items.each(function(field) {
-                field.enable();
-            });
+            this.formPanel.selectionMode.enable();
+            this.formPanel.placeSearch.enable();
+            this.formPanel.cutMode.enable();
         } else {
-            this.spatialSettings.items.each(function(field) {
-                field.disable();
-            });
+            this.formPanel.selectionMode.disable();
+            this.formPanel.placeSearch.disable();
+            this.formPanel.cutMode.disable();
         }
     },
     
@@ -1439,10 +1450,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         if(!this.originalGeometry && this.spatialSelection.features.length == 0) return;
         var feature = this.unBufferedFeature || this.spatialSelection.features[0];
 
+        if(!this.loadMask) this.loadMask = new Ext.LoadMask(this.formPanel.getEl());
+        this.loadMask.show();
+        
         var request = {
-            //storeExecuteResponse: true, non sono sicuro di questi...
-            //lineage:  true,
-            //status: true,
             type: "raw",
             inputs:{
                 geom: new OpenLayers.WPSProcess.ComplexData({
@@ -1462,18 +1473,22 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 try {
                     var geometry = OpenLayers.Geometry.fromWKT(response);
                 } catch(e) {
-                    return alert('Error'); //TODO: messaggio migliore
+                    return Ext.Msg.show({
+                        title: this.errBufferTitle,
+                        msg: this.errBufferMsg,
+                        buttons: Ext.Msg.OK,
+                        icon: Ext.Msg.ERROR
+                    });
                 }
                 var bufferedFeature = new OpenLayers.Feature.Vector(geometry);
                 this.spatialSelection._preventBufferReset = true;
                 this.spatialSelection.addFeatures([bufferedFeature]);
                 this.spatialSelection._preventBufferReset = false;
                 this.unBufferedFeature = feature; //copy the "original" feature, without any buffer applied
+                this.target.mapPanel.map.zoomToExtent(geometry.getBounds());
             }
             
-            this.formPanel.downloadButton.enable();
-            this.formPanel.resetButton.enable();
-            this.formPanel.refreshButton.enable();
+            this.loadMask.hide();
         }, this)
     }
        
