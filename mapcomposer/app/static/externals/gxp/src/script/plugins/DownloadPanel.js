@@ -151,6 +151,21 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
     bufferRequestTimeout: 1 * 1000,
     
+	/** api: config[wfsDefaultVersion]
+     *  ``String``
+     */
+    wfsDefaultVersion: '1.0.0',
+    
+	/** api: config[wcsDefaultVersion]
+     *  ``String``
+     */
+    wcsDefaultVersion: '1.0.0',
+    
+	/** api: config[wpsDefaultVersion]
+     *  ``String``
+     */
+    wpsDefaultVersion: '1.0.0',
+    
     tabTitle: "Download",
     
     dselTitle: "Data Selection",
@@ -203,6 +218,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     
     errBufferTitle: "Buffer failed",
     errBufferMsg: "Error buffering feature",
+    
+    errUnknownLayerTypeTitle: "Unknown layer type",
+    errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
     
     /** private: method[constructor]
      */
@@ -526,8 +544,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								this.target.mapPanel.layers.remove(this.selectedLayer);
 							}
 							
+                            var url = this.wpsUrl+"&version="+this.wpsDefaultVersion+"&request=DescribeProcess&identifier=gs:Download";
+                            var requestUrl = this.isSameOrigin(url) ? url : this.target.proxy + encodeURIComponent(url);
                             var Request = Ext.Ajax.request({
-                                url: /*this.wpsProxy*/ this.target.proxy + encodeURIComponent(this.wpsUrl+"&version=1.0.0&request=DescribeProcess&identifier=gs:Download"),
+                                url: requestUrl,
                                 method: 'GET',
                                 scope: this,
                                 success: function(response, opts){
@@ -564,24 +584,38 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							// ////////////////////////////
 							var layerName = record.data.name;
 							var layerSource = record.data.source;
-							var isWCS = record.data.wcs;
+							//var isWCS = record.data.wcs;
 							
-						    if(record){
+                            // check the layer type
+                            // async because it may need to check for describeFeatureType and describeCoverage
+                            this.getLayerType(record.data, function(layerType) {
+                                if(!layerType) {
+                                    return Ext.Msg.show({
+                                        title: this.errUnknownLayerTypeTitle,
+                                        msg: this.errUnknownLayerTypeMsg,
+                                        buttons: Ext.Msg.OK,
+                                        icon: Ext.Msg.INFO
+                                    });
+                                    //aggiungere disabilitazione di tutto
+                                }
+                                
+                                record.data.wcs = (layerType == 'WCS');
+                                
 								var options = {
 									msLayerTitle: layerName,
 									msLayerName: layerName,
 									source: layerSource,
 									customParams: {
-										wcs: isWCS
+										wcs: (layerType == 'WCS')
 									}
 								};
 								
 								this.addLayerTool.addLayer(
 									options
 								);
-							}
-                            
-                            this.updateFormStatus();
+                                
+                                this.updateFormStatus();
+                            }, this);
 						}, 
 						beforequery: function(){
 							this.reloadLayers();
@@ -1456,9 +1490,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     bufferSpatialSelection: function(buffer) {
         if(!this.originalGeometry && this.spatialSelection.features.length == 0) return;
         var feature = this.unBufferedFeature || this.spatialSelection.features[0];
-
-        if(!this.loadMask) this.loadMask = new Ext.LoadMask(this.formPanel.getEl());
-        this.loadMask.show();
+        
+        this.showMask();
         
         var request = {
             type: "raw",
@@ -1495,8 +1528,95 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 this.target.mapPanel.map.zoomToExtent(geometry.getBounds());
             }
             
-            this.loadMask.hide();
+            this.hideMask();
         }, this)
+    },
+    
+    // check if the selected layer is raster or vector by performing a DescribeFeatureType and a DescribeCoverage
+    getLayerType: function(layer, callback, scope) {
+        var layerSource = this.target.layerSources[layer.source],
+            url = layerSource.url,
+            questionMarkIndexOf = url.indexOf('?'),
+            separator, wfsUrl, wcsUrl;
+        
+        //if we found the "wcs" keyword, just return WCS
+        if(layer.wcs) return callback.call(this, 'WCS');
+        
+        this.showMask();
+        
+        if(questionMarkIndexOf > -1) {
+            if(questionMarkIndexOf < url.length) separator = '&';
+        } else {
+            separator = '?';
+        }
+        
+        wfsUrl = url + separator + 'service=WFS&request=DescribeFeatureType&version='+this.wfsDefaultVersion+'&typeName='+layer.name;
+        wcsUrl = url + separator + 'service=WCS&request=DescribeCoverage&version='+this.wcsDefaultVersion+'&identifiers='+layer.name;
+        
+        //DescribeCoverage request: if it returns a valid DescribeCoverage response, return the WCS layer type
+        // function is needed because we need to execute it if the DescribeFeatureType parsing fails and if the request fails
+        var checkDescribeCoverage = function() {
+            var requestUrl = this.isSameOrigin(wcsUrl) ? wcsUrl : this.target.proxy + encodeURIComponent(wcsUrl);
+            Ext.Ajax.request({
+                url: requestUrl,
+                method: 'GET',
+                scope: this,
+                success: function(response) {
+                    this.hideMask();
+                    var format = new OpenLayers.Format.XML();
+                    try {
+                        var xml = format.read(response.responseText);
+                        if(xml.getElementsByTagName("CoverageDescription").length > 0) {
+                            return callback.call(scope, 'WCS');
+                        }
+                    } catch(e) {
+                        console.log(response);
+                    }
+                    return callback.call(scope);
+                },
+                failure: function(response) {
+                    this.hideMask();
+                    return callback.call(scope);
+                }
+            });
+        };
+        
+        //DescribeFeatureType request: if it returns a valid DescribeFeatureType response, return the WFS layer type
+        var requestUrl = this.isSameOrigin(wfsUrl) ? wfsUrl : this.target.proxy + encodeURIComponent(wfsUrl);
+        Ext.Ajax.request({
+            url: requestUrl,
+            method: 'GET',
+            scope: this,
+            success: function(response, opts){
+                var format = new OpenLayers.Format.WFSDescribeFeatureType();
+                try {
+                    var dftResponse = format.read(response.responseXML || response.responseText);
+                    if(dftResponse && dftResponse.featureTypes && dftResponse.featureTypes.length > 0) {
+                        this.hideMask();
+                        return callback.call(scope, 'WFS');
+                    }
+                } catch(e) {
+                    console.log(response);
+                }
+                checkDescribeCoverage.call(this);
+            },
+            failure: checkDescribeCoverage
+        });     
+    },
+    
+    showMask: function() {
+        if(!this.loadMask) this.loadMask = new Ext.LoadMask(this.formPanel.getEl());
+        this.loadMask.show();
+    },
+    
+    hideMask: function() {
+        this.loadMask.hide();
+    },
+    
+    isSameOrigin: function(url) {
+        var pattern=/(.+:\/\/)?([^\/]+)(\/.*)*/i;
+        var mHost=pattern.exec(url); 
+        return (mHost[2] == location.host);
     }
        
 });
