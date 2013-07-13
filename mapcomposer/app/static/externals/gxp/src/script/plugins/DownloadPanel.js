@@ -417,20 +417,20 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	 * 
 	 *  Defines the behavior of the tool's controls enablement when the Radio is checked. 
      */
-	toggleControl: function (element) {
+	toggleControl: function (value) {
 		// ////////////////////////////////////////////////
 		// Remove the old features before switching OL 
 		// selection control.
 		// ////////////////////////////////////////////////
 		this.spatialSelection.removeAllFeatures();
-        if(element && element.value == 'place' && element.checked) {
+        if(value == 'place') {
             this.formPanel.placeSearch.show();
         } else {
             this.formPanel.placeSearch.hide();
         }
         for(key in this.drawControls) {
             var control = this.drawControls[key];
-            if(element && element.value == key && element.checked) {
+            if(value == key) {
                 control.activate();
             } else {
                 control.deactivate();
@@ -613,23 +613,27 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			title: this.settingTitle,
 			items: [
 				{
-					xtype: 'radiogroup',
+					xtype: 'combo',
 					ref: "../selectionMode",
 					fieldLabel: this.settingSel,
-					itemCls: 'x-check-group-alt',
-					columns: 1,
+					//itemCls: 'x-check-group-alt',
+					//columns: 1,
 					width: 140,
 					allowBlank: false,
-					items: [
-						{boxLabel: 'Box', name: 'cb-col-1', value: 'box'}
-						,{boxLabel: 'Polygon', name: 'cb-col-1', value: 'polygon'}
-						,{boxLabel: 'Circle', name: 'cb-col-1', value: 'circle'}
-						,{boxLabel: 'Place', name: 'cb-col-1', value: 'place'}
-					],
+                    valueField: 'value',
+                    displayField: 'text',
+                    triggerAction: 'all',
+                    mode: 'local',
+                    store: new Ext.data.ArrayStore({
+                        fields: ['value', 'text'],
+                        data: [
+                            ['box', 'Box'], ['polygon', 'Polygon'], ['circle', 'Circle'], ['place', 'Place']
+                        ]
+                    }),
 					listeners: {
 						scope: this,
-						change: function(group, checked){
-							this.toggleControl(checked);
+						select: function(combo){
+							this.toggleControl(combo.getValue());
 						}
 					}
 				},
@@ -658,7 +662,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 
         this.emailNotification = new Ext.form.FieldSet({
             title: this.emailNotificationTitle,
-            checkboxToggle: true,
+            checkboxToggle: {tag: 'input', type: 'checkbox', checked: false},
             ref: "emailNotification",
             items: [
                 /*{ // TODO Disabled due to unimplemented plug-in
