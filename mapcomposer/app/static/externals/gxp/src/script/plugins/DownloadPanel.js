@@ -611,14 +611,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     var bounds = feature.geometry.getBounds();
                     
                     this.spatialSelection.addFeatures([feature]);
-                    this.target.mapPanel.map.zoomToExtent(bounds);
                     
                     //if the geometry is point, force the user to insert a buffer
                     if(feature.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
+                        var buffered = OpenLayers.Geometry.Polygon.createRegularPolygon(feature.geometry, 1000, 4);
+                        bounds = buffered.getBounds();
                         this.placeSearch.allowBlank = false;
                     } else {
                         this.placeSearch.allowBlank = true;
                     }
+
+                    this.target.mapPanel.map.zoomToExtent(bounds);
                 }
             }
         }));
