@@ -155,6 +155,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      *  ``Object``
      */
     gazetteerConfig: null,
+
+    /** api: config[bufferRequestTimeout]
+     *  ``Integer``
+     */
+    bufferRequestTimeout: 3 * 1000,
     
     tabTitle: "Download",
     
@@ -216,7 +221,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	 * 
 	 *  Provide the initialization code defining necessary listeners and controls.
      */
-	init: function(target) {	
+	init: function(target) {
 		target.on({
 			'ready' : function(){
 			    this.addLayerTool = app.tools["addlayer"];
@@ -253,12 +258,30 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					// Remove the old features before drawing other features.
 					// //////////////////////////////////////////////////////
 					this.spatialSelection.removeAllFeatures();
+                    
+					// //////////////////////////////////////////////////////
+					// reset the buffer field when the geometry has changed
+                    // the preventBufferReset is needed to avoid resetting it when the buffered feature is added
+					// //////////////////////////////////////////////////////
+                    if(!this.spatialSelection._preventBufferReset) {
+                        this.formPanel.bufferField.reset();
+                    }
+				});
+                this.spatialSelection.events.register("featureadded", this, function(){
+					// //////////////////////////////////////////////////////
+					// Check the form status: the buffer field shall be enabled here
+					// //////////////////////////////////////////////////////
+					this.updateFormStatus();
 				});
                 this.spatialSelection.events.register('featureremoved', this, function() {
 					// //////////////////////////////////////////////////////
 					// Remove the "unbuffered" copy of the feature
 					// //////////////////////////////////////////////////////
                     delete this.unBufferedFeature;
+					// //////////////////////////////////////////////////////
+					// Check the form status: the buffer field shall be disabled here
+					// //////////////////////////////////////////////////////
+                    this.updateFormStatus();
                 });
                
 				var ev = map.events.register('addlayer', this, function(e){
@@ -356,7 +379,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var source, data = [];   
 
 		var layerSources = this.target.layerSources;
-		
+
 		for (var id in layerSources) {
 			source = layerSources[id];
 			
@@ -374,7 +397,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					var store = source.store;
 					if (store) {
 						var records = store.getRange();
-						
+
 						var size = store.getCount();
 						for(var i=0; i<size; i++){
 						    var record = records[i]; 
@@ -562,7 +585,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}, 
 						beforequery: function(){
 							this.reloadLayers();
-						}
+						},
+                        change: this.updateFormStatus
 					}
 				},
 				{
@@ -580,7 +604,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					resizable: true,
 					typeAhead: true,
 					typeAheadDelay: 3,
-					allowBlank: false					
+					allowBlank: false,
+                    listeners: {
+                        scope: this,
+                        change: function() {
+                            this.spatialSettings.items.each(function(field) {
+                                field.reset();
+                            });
+                            this.formPanel.bufferField.reset();
+                            this.updateFormStatus();
+                        }
+                    }
 				},	
 				{
 					xtype: "combo",
@@ -603,6 +637,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             xtype: 'gazetteercombobox',
             fieldLabel: this.placeSearchLabel,
             hidden: true,
+            disabled: true,
             ref: "../placeSearch",
             listeners: {
                 scope: this,
@@ -633,6 +668,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: 'combo',
 					ref: "../selectionMode",
 					fieldLabel: this.settingSel,
+                    disabled: true,
 					//itemCls: 'x-check-group-alt',
 					//columns: 1,
 					width: 140,
@@ -651,7 +687,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						scope: this,
 						select: function(combo){
 							this.toggleControl(combo.getValue());
-						}
+						},
+                        change: this.updateFormStatus
 					}
 				},
                 this.placeSearch,
@@ -661,21 +698,55 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					fieldLabel: "Buffer (m)",
 					width: 140,
                     enableKeyEvents: true,
+                    disabled: true,
                     listeners: {
                         scope: this,
                         keyup: function(field) {
                             var me = this;
                             
+                            me.formPanel.downloadButton.disable();
+                            me.formPanel.resetButton.disable();
+                            me.formPanel.refreshButton.disable();
+                            
+                            //set a timeout to enable buttons if the buffer request fails
+                            if(me.bufferEnableButtonsTimeout) clearTimeout(me.bufferEnableButtonsTimeout);
+                            me.bufferEnableButtonsTimeout = setTimeout(function() {
+                                
+                                me.formPanel.bufferField.reset();
+                                me.formPanel.downloadButton.enable();
+                                me.formPanel.resetButton.enable();
+                                me.formPanel.refreshButton.enable();
+                            }, 30 * 1000);
+                            
                             if(me.bufferTimeout) clearTimeout(me.bufferTimeout);
                             me.bufferTimeout = setTimeout(function() {
                                 me.bufferSpatialSelection(field.getValue());
-                            }, 500);
+                            }, me.bufferRequestTimeout);
                         }
                     }
 				},
-			    {
+                {
+                    xtype: 'combo',
+					ref: "../cutMode",
+                    disabled: true,
+					fieldLabel: this.settingCut,
+                    valueField: 'value',
+                    displayField: 'text',
+                    triggerAction: 'all',
+                    mode: 'local',
+                    value: false,
+                    width: 140,
+                    store: new Ext.data.ArrayStore({
+                        fields: ['value', 'text'],
+                        data: [
+                            [false, 'Intersection'], [true, 'Clip']
+                        ]
+                    })
+                }
+/* 			    {
 					xtype: 'radiogroup',
 					ref: "../cutMode",
+                    disabled: true,
 					fieldLabel: this.settingCut,
 					itemCls: 'x-check-group-alt',
 					columns: 1,
@@ -683,13 +754,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						{boxLabel: 'Intersection', name: 'cb-col-2', inputValue: false, checked: true},
 						{boxLabel: 'Clip', name: 'cb-col-2', inputValue: true}
 					]
-				}
+				} */
 			]
 		});
 
         this.emailNotification = new Ext.form.FieldSet({
             title: this.emailNotificationTitle,
-            checkboxToggle: {tag: 'input', type: 'checkbox', checked: false},
+            checkboxToggle: true,
+            collapsed: true,
             ref: "emailNotification",
             items: [
                 /*{ // TODO Disabled due to unimplemented plug-in
@@ -968,7 +1040,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var bufferField = downloadForm.bufferField.isValid();
 						var cutMode = downloadForm.cutMode.isValid();
                         var email = true;
-                        if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
+                        if(downloadForm.emailNotification.checkbox.dom.getAttribute('checked')) {
                             email = downloadForm.emailField.isValid();
                         }
 												
@@ -1327,6 +1399,26 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         r.endEdit();
     },
     
+    updateFormStatus: function() {
+        //enable buffer only if layer, crs and selection mode have a value
+        if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()
+            && this.formPanel.selectionMode.getValue() && this.spatialSelection.features.length > 0) {
+            this.formPanel.bufferField.enable();
+        } else {
+            this.formPanel.bufferField.disable();
+        }
+        
+        if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()) {
+            this.spatialSettings.items.each(function(field) {
+                field.enable();
+            });
+        } else {
+            this.spatialSettings.items.each(function(field) {
+                field.disable();
+            });
+        }
+    },
+    
     bufferSpatialSelection: function(buffer) {
         if(!this.originalGeometry && this.spatialSelection.features.length == 0) return;
         var feature = this.unBufferedFeature || this.spatialSelection.features[0];
@@ -1335,6 +1427,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             //storeExecuteResponse: true, non sono sicuro di questi...
             //lineage:  true,
             //status: true,
+            type: "raw",
             inputs:{
                 geom: new OpenLayers.WPSProcess.ComplexData({
                     value: feature.geometry.toString(),
@@ -1347,16 +1440,26 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 mimeType: "application/wkt"
             }]
         };
-        console.log('wpsmanager execute...');
+
         this.wpsManager.execute('JTS:buffer', request, function(response) {
-            var geometry = OpenLayers.Geometry.fromWKT('POLYGON((1015185.4491406 5580354.7018115,1034753.3283789 5864088.9507666,1641357.5847656 5873872.8903857,1215756.211333 5560786.8225732,1015185.4491406 5580354.7018115))');
-            var bufferedFeature = new OpenLayers.Feature.Vector(geometry);
-            this.spatialSelection.removeAllFeatures();
-            this.spatialSelection.addFeatures([bufferedFeature]);
-            this.unBufferedFeature = feature; //copy the "original" feature, without any buffer applied
+            if(response) {
+                try {
+                    var geometry = OpenLayers.Geometry.fromWKT(response);
+                } catch(e) {
+                    return alert('Error'); //TODO: messaggio migliore
+                }
+                var bufferedFeature = new OpenLayers.Feature.Vector(geometry);
+                this.spatialSelection._preventBufferReset = true;
+                this.spatialSelection.addFeatures([bufferedFeature]);
+                this.spatialSelection._preventBufferReset = false;
+                this.unBufferedFeature = feature; //copy the "original" feature, without any buffer applied
+            }
+            
+            this.formPanel.downloadButton.enable();
+            this.formPanel.resetButton.enable();
+            this.formPanel.refreshButton.enable();
         }, this)
     }
-
        
 });
 
