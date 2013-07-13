@@ -1278,8 +1278,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     },
                     
     removeInstance: function(instanceID){
-        this.wpsManager.deleteExecuteInstance(instanceID);
-        this.getInstances(false);
+        var me = this;
+        
+        me.wpsManager.deleteExecuteInstance(instanceID, function() {
+            me.getInstances(false);
+        });
     },
     
     getInstance: function(instanceID){
