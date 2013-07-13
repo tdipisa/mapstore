@@ -11,7 +11,7 @@
 			"version":"1.1.1",
             "layerBaseParams": { 
 				"TILED": true,
-				"TILESORIGIN": "-180,-90"
+				"TILESORIGIN": "-20037508.34, -20037508.34"
             }
 		},
 		"mapquest": {

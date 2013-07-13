@@ -1,15 +1,17 @@
 {
-   "geoStoreBase": "http://localhost:8080/geostore/rest/",
+   "geoStoreBase":"http://84.33.2.30/geostore/rest/",
+   "gnBaseUrl": "http://84.33.2.30/geonetwork/",
    "proxy":"/http_proxy/proxy/?url=",
    "defaultLanguage": "it",
+   "tab": true,
    "gsSources":{ 
-		"geosol":{
+   		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://localhost:8080/geoserverbz/ows",
+			"url": "http://84.33.2.30/geoserverbz/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
 				"TILED": true,
-				"TILESORIGIN": "-180,-90"
+				"TILESORIGIN": "-20037508.34, -20037508.34"
             }
 		},
 		"mapquest": {
@@ -68,10 +70,6 @@
 				"title": "Google Hybrid",
 				"name": "HYBRID",
 				"group": "background"
-			},{
-				"source": "geosol",
-				"title": "Cities",
-				"name": "geosolutions:cities"
 			}
 		]
 	},
@@ -92,33 +90,15 @@
             "header": true
         }
     ],	
-	"scaleOverlayUnits":{
-        "bottomOutUnits":"nmi",    
-        "bottomInUnits":"nmi",    
-        "topInUnits":"m",    
-        "topOutUnits":"km"
-    },
-	
 	"customTools":[
 		{
-			"actions": ["-"], 
-			"actionTarget": "paneltbar"
-		}, {
 			"ptype": "gxp_metadataexplorer",
 			"id": "metadataexplorer",
             "outputTarget": "south",
+			"saveState": true,
             "cswconfig": {
                 "catalogs": [
-                        {"name": "CSI Piemonte", "url": "http://www.ruparpiemonte.it/geocatalogorp/geonetworkrp/srv/it/csw", "description": "GeoPortale della Regione Piemonte"},
-                        {"name": "Comune di Firenze", "url": "http://datigis.comune.fi.it/geonetwork/srv/it/csw", "description": "GeoPortale del Comune di Firenze"},
-                        {"name": "PTA", "url": "http://pta.partout.it/geoportalPTA/csw", "description": "Piattaforma Tecnologica alpina", "metaDataOptions":{"base":"http://pta.partout.it/geoportalPTA/catalog/search/resource/details.page","idParam":"uuid","idIndex":0}},
-                        {"name": "Treviso", "url": "http://ows.provinciatreviso.it/geonetwork/srv/it/csw", "description": "Treviso Geonetwork"},
-                        {"name": "kscNet", "url": "http://geoportal.kscnet.ru/geonetwork/srv/ru/csw", "description": "kscNet"},
-                        {"name": "CSI-CGIAR", "url": "http://geonetwork.csi.cgiar.org/geonetwork/srv/en/csw", "description" : "CSI-CGIAR"},
-                        {"name": "EauFrance", "url": "http://sandre.eaufrance.fr/geonetwork/srv/fr/csw", "description" : "EauFrance"},
-                        {"name": "SOPAC", "url": "http://geonetwork.sopac.org/geonetwork/srv/en/csw", "description" : "SOPAC"},
-                        {"name": "SADC", "url": "http://www.sadc.int/geonetwork/srv/en/csw", "description" : "SADC"},
-                        {"name": "MAPAS", "url": "http://mapas.mma.gov.br/geonetwork/srv/en/csw", "description" : "MAPAS"}
+                        {"name": "Bozen Portal", "url": "http://84.33.2.30/geonetwork/srv/de/csw", "description": "GeoPortale della Provincia di Bolzano"}
                     ],
                 "dcProperty": "title",
                 "initialBBox": {
@@ -134,19 +114,9 @@
                 "timeout": 60000
             }            
 		}, {
-			"actions": ["->"], 
-			"actionTarget": "paneltbar"
-		}, {
-			"ptype": "gxp_reversegeocoder",
-			"outputTarget":"paneltbar",
-			"outputConfig": {
-				"width": "200"
-			},
-			"index": 26
-		}, {
-			"ptype": "gxp_dynamicgeocoder",
-			"outputTarget":"paneltbar",
-			"index": 27
+			"ptype": "gxp_geolocationmenu",
+			"outputTarget": "paneltbar",
+			"index": 23
 		}, {
 			"ptype": "gxp_addlayer",
 			"showCapabilitiesGrid": true,
@@ -156,9 +126,9 @@
 			"ptype": "gxp_download",
 			"outputTarget": "west",
 			"index": 28,
-			"wpsUrl": "http://localhost:8080/geoserverbz/ows?service=WPS",
+			"wpsUrl": "http://84.33.2.30/geoserverbz/ows?service=WPS",
 			"wpsProxy": "/proxy/?url=",
-			"geostoreUrl": "http://localhost:8080/geostore/rest",
+			"geostoreUrl": "http://84.33.2.30/geostore/rest",
             "geostoreProxy": "/proxy/?url=",
             "geostoreUser": "admin",
             "geostorePassword": "admin",
@@ -200,7 +170,7 @@
                 "geometryName": "geometry",
                 "filterProperty": "gn:name/gn:GeographicalName/gn:spelling/gn:SpellingOfName/gn:text"
             }
-		}	
+		}
 	],
     "proj4jsDefs":{
         "EPSG:26713":"+proj=utm +zone=13 +ellps=clrk66 +datum=NAD27 +units=m +no_defs",
