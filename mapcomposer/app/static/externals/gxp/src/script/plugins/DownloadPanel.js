@@ -254,6 +254,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					// //////////////////////////////////////////////////////
 					this.spatialSelection.removeAllFeatures();
 				});
+                this.spatialSelection.events.register('featureremoved', this, function() {
+					// //////////////////////////////////////////////////////
+					// Remove the "unbuffered" copy of the feature
+					// //////////////////////////////////////////////////////
+                    delete this.unBufferedFeature;
+                });
                
 				var ev = map.events.register('addlayer', this, function(e){
 					if( e.layer == this.spatialSelection ) 
@@ -423,6 +429,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// selection control.
 		// ////////////////////////////////////////////////
 		this.spatialSelection.removeAllFeatures();
+        this.formPanel.bufferField.reset();
         if(value == 'place') {
             this.formPanel.placeSearch.show();
         } else {
@@ -605,6 +612,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     
                     this.spatialSelection.addFeatures([feature]);
                     this.target.mapPanel.map.zoomToExtent(bounds);
+                    
+                    //if the geometry is point, force the user to insert a buffer
+                    if(feature.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
+                        this.placeSearch.allowBlank = false;
+                    } else {
+                        this.placeSearch.allowBlank = true;
+                    }
                 }
             }
         }));
@@ -638,14 +652,24 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					}
 				},
                 this.placeSearch,
-				/*
 				{
 					xtype: "numberfield",
 					ref: "../bufferField",
 					fieldLabel: "Buffer (m)",
 					width: 140,
-					disabled: false					
-				},*/
+                    enableKeyEvents: true,
+                    listeners: {
+                        scope: this,
+                        keyup: function(field) {
+                            var me = this;
+                            
+                            if(me.bufferTimeout) clearTimeout(me.bufferTimeout);
+                            me.bufferTimeout = setTimeout(function() {
+                                me.bufferSpatialSelection(field.getValue());
+                            }, 500);
+                        }
+                    }
+				},
 			    {
 					xtype: 'radiogroup',
 					ref: "../cutMode",
@@ -938,7 +962,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var crsCombo = downloadForm.crsCombo.isValid();
 						var formatCombo = downloadForm.formatCombo.isValid();
 						var selectionMode = downloadForm.selectionMode.isValid();
-						//var bufferField = downloadForm.bufferField.isValid();
+						var bufferField = downloadForm.bufferField.isValid();
 						var cutMode = downloadForm.cutMode.isValid();
                         var email = true;
                         if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
@@ -946,7 +970,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         }
 												
 						var isValid = layerCombo && crsCombo && formatCombo && 
-							selectionMode  && cutMode && email; //&& bufferField
+							selectionMode  && cutMode && email && bufferField;
 						
 						if(!isValid){
 						    Ext.Msg.show({
@@ -1298,6 +1322,36 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         }
         
         r.endEdit();
+    },
+    
+    bufferSpatialSelection: function(buffer) {
+        if(!this.originalGeometry && this.spatialSelection.features.length == 0) return;
+        var feature = this.unBufferedFeature || this.spatialSelection.features[0];
+
+        var request = {
+            //storeExecuteResponse: true, non sono sicuro di questi...
+            //lineage:  true,
+            //status: true,
+            inputs:{
+                geom: new OpenLayers.WPSProcess.ComplexData({
+                    value: feature.geometry.toString(),
+                    mimeType: "application/wkt"
+                }),
+                distance: new OpenLayers.WPSProcess.LiteralData({value:buffer})
+            },
+            outputs: [{
+                identifier: "result",
+                mimeType: "application/wkt"
+            }]
+        };
+        console.log('wpsmanager execute...');
+        this.wpsManager.execute('JTS:buffer', request, function(response) {
+            var geometry = OpenLayers.Geometry.fromWKT('POLYGON((1015185.4491406 5580354.7018115,1034753.3283789 5864088.9507666,1641357.5847656 5873872.8903857,1215756.211333 5560786.8225732,1015185.4491406 5580354.7018115))');
+            var bufferedFeature = new OpenLayers.Feature.Vector(geometry);
+            this.spatialSelection.removeAllFeatures();
+            this.spatialSelection.addFeatures([bufferedFeature]);
+            this.unBufferedFeature = feature; //copy the "original" feature, without any buffer applied
+        }, this)
     }
 
        
