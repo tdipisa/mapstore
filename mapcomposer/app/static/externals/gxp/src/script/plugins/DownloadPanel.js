@@ -140,6 +140,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      *  ``gxp.plugins.WPSManager``
      */
     wpsManager: null,
+
+    /** 
+     *  ``gxp.plugins.FeatureManager``
+     */
+    featureManager: null,
     
     /** api: config[gazetteerConfig]
      *  ``Object``
@@ -165,6 +170,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      *  ``String``
      */
     wpsDefaultVersion: '1.0.0',
+
+	/** api: config[ogcFilterVersion]
+     *  ``String``
+     */
+    ogcFilterVersion: '1.1.0',
     
     tabTitle: "Download",
     
@@ -177,12 +187,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     settingSel: "Selection Mode",
     settingCut: "Cut Mode",
     
-/*     optTitle: "Optional Settings",
-    optEmail: "Filter",
-    optEmail: "Email", */
-    
     emailNotificationTitle: "Email notification",
     emailFieldLabel: "Email",
+
+    vectorFilterTitle: "Vector Filter",
     
     placeSearchLabel: "Place",
 
@@ -222,6 +230,41 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     errUnknownLayerTypeTitle: "Unknown layer type",
     errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
     
+    msgEmptyEmailTitle: "Empty email",
+    msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",
+    
+    msgEmptyFilterTitle: "Empty filter",
+    msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",
+    
+    msgTooltipPending: 'Pending',
+    msgTooltipSuccess: 'Success',
+    msgTooltipExecuting: 'Executing',
+    msgTooltipFailed: 'Failed',
+    msgTooltipAccepted: 'Accepted',
+    
+    msgGeostoreException: "Geostore Exception",
+    
+    msgBox: 'Box',
+    msgPolygon: 'Polygon',
+    msgCircle: 'Circle',
+    msgPlace: 'Place',
+    
+    msgIntersection: 'Intersection',
+    msgClip: 'Clip',
+    
+    msgInstance: 'Instance',
+    
+    msgName: 'Name',
+    msgCreation: 'Creation',
+    msgDescription: 'Description',       
+    msgCategory: 'Category',          
+    msgMetadata: 'Metadata',
+    msgAttributes: 'Attributes',
+    
+    errUnexistingListMsg: "Lista non esistente",
+    
+    
+    
     /** private: method[constructor]
      */
     constructor: function(config) {
@@ -240,7 +283,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				this.addLayerTool.on({
 					'ready' : function(layerRecord){
 						this.selectedLayer = layerRecord;
-						
 						// ///////////////////////////////////
 						// As usual reload the Formats store
 						// ///////////////////////////////////
@@ -251,6 +293,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}else{
 							this.formatStore.loadData(this.formats.wfs, false);
                             this.formPanel.cutMode.enable();
+                            this.showMask();
+                            this.featureManager.setLayer(layerRecord);
 						}
 					},
 					scope: this
@@ -337,12 +381,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             listeners: {
                                 "geostorefailure": function(tool, msg){
                                     Ext.Msg.show({
-                                        title: "Geostore Exception" ,
+                                        title: this.msgGeostoreException,
                                         msg: msg,
                                         buttons: Ext.Msg.OK,
                                         icon: Ext.Msg.ERROR
                                     });
-                                }
+                                },
+                                scope: this
                             }
                         })
                     });
@@ -375,6 +420,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         return instanceName;
                     };
 				}
+                
+                this.featureManager = this.target.tools[this.featureManager];
+                this.featureManager.on({
+                    scope: this,
+                    layerchange: function(fm, record, schema) {
+                        this.createVectorFilterForm(schema);
+                        this.hideMask();
+                    }
+                });
 				
 			},
 			scope: this
@@ -590,13 +644,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             // async because it may need to check for describeFeatureType and describeCoverage
                             this.getLayerType(record.data, function(layerType) {
                                 if(!layerType) {
+                                    this.formPanel.downloadButton.disable();
+                                    this.formPanel.resetButton.disable();
+                                    this.formPanel.refreshButton.disable();
                                     return Ext.Msg.show({
                                         title: this.errUnknownLayerTypeTitle,
                                         msg: this.errUnknownLayerTypeMsg,
                                         buttons: Ext.Msg.OK,
                                         icon: Ext.Msg.INFO
                                     });
-                                    //aggiungere disabilitazione di tutto
                                 }
                                 
                                 record.data.wcs = (layerType == 'WCS');
@@ -615,6 +671,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								);
                                 
                                 this.updateFormStatus();
+                                
+                                this.formPanel.downloadButton.enable();
+                                this.formPanel.resetButton.enable();
+                                this.formPanel.refreshButton.enable();
                             }, this);
 						}, 
 						beforequery: function(){
@@ -714,7 +774,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     store: new Ext.data.ArrayStore({
                         fields: ['value', 'text'],
                         data: [
-                            ['box', 'Box'], ['polygon', 'Polygon'], ['circle', 'Circle'], ['place', 'Place']
+                            ['box', this.msgBox], ['polygon', this.msgPolygon], ['circle', this.msgCircle], ['place', this.msgPlace]
                         ]
                     }),
 					listeners: {
@@ -776,7 +836,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     store: new Ext.data.ArrayStore({
                         fields: ['value', 'text'],
                         data: [
-                            [false, 'Intersection'], [true, 'Clip']
+                            [false, this.msgIntersection], [true, this.msgClip]
                         ]
                     })
                 }
@@ -794,6 +854,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				} */
 			]
 		});
+        
+        this.vectorFilterContainer = new Ext.form.FieldSet({
+            title: this.vectorFilterTitle,
+            checkboxToggle: true,
+            collapsed: true,
+            hidden: true
+        });
 
         this.emailNotification = new Ext.form.FieldSet({
             title: this.emailNotificationTitle,
@@ -878,36 +945,36 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     header: this.resGet, 
                     width: 36,
                     items: [{
-                            getClass: function(v, meta, rec) { 
+                            getClass: function(v, meta, rec) {
                                 var tooltip = '', icnClass='decline';
 								var execStatus = rec.get('executionStatus'); 
                                 switch (execStatus) {    
                                     case 'Process Pending':
                                     case 'Pending':
                                         icnClass = 'decline';
-                                        tooltip = 'Pending';
+                                        tooltip = mydlp.msgTooltipPending;
                                         break;
                                     case 'Process Succeeded':
                                     case 'Succeeded':
                                         icnClass = 'accept';
-                                        tooltip = 'Success';
+                                        tooltip = mydlp.msgTooltipSuccess;
                                         break;
                                     case 'Process Started':
                                     case 'Started':
                                         icnClass = 'accept';
-                                        tooltip = 'Executing';
+                                        tooltip = mydlp.msgTooltipExecuting;
                                         break;
                                     case 'Process Accepted':
                                     case 'Accepted':
                                         if(rec.get('phase')=='COMPLETED'){
                                             icnClass = 'accept';
-                                            tooltip = 'Success';
+                                            tooltip = mydlp.msgTooltipSuccess;
                                         }else if(rec.get('phase')=='FAILED'){
                                             icnClass = 'decline';
-                                            tooltip = 'Failed';
+                                            tooltip = mydlp.msgTooltipFailed;
                                         }else{
                                             icnClass = 'loading';
-                                            tooltip = 'Accepted';
+                                            tooltip = mydlp.msgTooltipAccepted;
                                         }
                                         break;
                                     default:
@@ -993,7 +1060,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								return '<a href="' + val + '" target="_blank" /><img src="theme/app/img/download.png" /></a>';
 							}else{
 							    var message = mydlp.wpsErrorMsg;
-							    var html = '<img src="theme/app/img/download.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>';								
+							    var html = '<img src="theme/app/img/download.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>'; 								
 								return html;
 							}
 						}
@@ -1034,6 +1101,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				this.laySel,
 				this.spatialSettings,
 				this.emailNotification,
+                this.vectorFilterContainer,
 				this.resultPanel
 			],
 			buttons:[
@@ -1089,14 +1157,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						var formatCombo = downloadForm.formatCombo.isValid();
 						var selectionMode = downloadForm.selectionMode.isValid();
 						var bufferField = downloadForm.bufferField.isValid();
-						var cutMode = downloadForm.cutMode.isValid();
-                        var email = true;
-                        if(downloadForm.emailNotification.checkbox.dom.getAttribute('checked')) {
-                            email = downloadForm.emailField.isValid();
-                        }
-												
+						var cutMode = downloadForm.cutMode.isValid();									
 						var isValid = layerCombo && crsCombo && formatCombo && 
-							selectionMode  && cutMode && email && bufferField;
+							selectionMode  && cutMode && bufferField;
 						
 						if(!isValid){
 						    Ext.Msg.show({
@@ -1107,9 +1170,56 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             });
                             return;
 						}
-						if(this.spatialSelection.features.length){
+                        
+                        var requestFunction = function() {
 							var asreq = this.getAsyncRequest(downloadForm);
-    						this.wpsManager.execute('gs:Download', asreq, this.executeCallback, this)
+    						this.wpsManager.execute('gs:Download', asreq, this.executeCallback, this);
+                        };
+                        
+                        //check the email notification field
+                        // if it's checked but invalid, ask the user to confirm the operation without email notification
+                        if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
+                            if(!downloadForm.emailField.isValid()) {
+                                return Ext.Msg.show({
+                                    title: this.msgEmptyEmailTitle,
+                                    msg: this.msgEmptyEmailMsg,
+                                    buttons: Ext.Msg.YESNOCANCEL,
+                                    fn: function(btnValue) {
+                                        if(btnValue == 'yes') {
+                                            requestFunction.call(this);
+                                        }
+                                        return;
+                                    },
+                                    scope: this,
+                                    animEl: 'elId',
+                                    icon: Ext.MessageBox.QUESTION
+                                });
+                            }
+                        }
+                        
+                        // check the filter field
+                        // if it's checked but invalid, ask the user to confirm the operation without the filter
+                        if(this.vectorFilterContainer.checkbox.getAttribute('checked')) {
+                            if(!downloadForm.filterBuilder.getFilter()) {
+                                return Ext.Msg.show({
+                                    title: this.msgEmptyFilterTitle,
+                                    msg: this.msgEmptyFilterMsg,
+                                    buttons: Ext.Msg.YESNOCANCEL,
+                                    fn: function(btnValue) {
+                                        if(btnValue == 'yes') {
+                                            requestFunction.call(this);
+                                        }
+                                        return;
+                                    },
+                                    scope: this,
+                                    animEl: 'elId',
+                                    icon: Ext.MessageBox.QUESTION
+                                });
+                            }
+                        }
+                        
+						if(this.spatialSelection.features.length){
+                            requestFunction.call(this);
     						// startRunner()
 						}else{
                             Ext.Msg.show({
@@ -1196,15 +1306,19 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 mimeType: "application/zip"
             }]
         };
-        
-        //var buffer = dform.bufferField.getValue();
-        //var filter = dform.filterField.getValue();
+
+        var filter = dform.filterBuilder.getFilter();
         var email = dform.emailField.getValue();
-        /*        
-        if(dform.filterField.isValid() && filter != ''){
-            request.inputs['filter'] = new OpenLayers.WPSProcess.LiteralData({value:filter});
+        
+        if(filter && this.vectorFilterContainer.checkbox.getAttribute('checked')) {
+            //var filterFormat = new OpenLayers.Format.Filter({version: this.ogcFilterVersion});
+            //var xmlFormat = new OpenLayers.Format.XML();
+            //var filterValue = xmlFormat.write(filterFormat.write(filter));
+            var format = new OpenLayers.Format.CQL();
+            var filterValue = format.write(filter);
+            request.inputs['filter'] = new OpenLayers.WPSProcess.LiteralData({value: filterValue});
         }
-        */
+
         if(dform.emailField.isValid() && email != ''){
             request.inputs['email'] = new OpenLayers.WPSProcess.LiteralData({value:email});
         }
@@ -1317,17 +1431,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 '<table class="gridtable">',
                 '<tr><th>ID</th>',
                 '<td>{id}</td></tr>',
-                '<tr><th>Name</th>',
+                '<tr><th>'+this.msgName+'</th>',
                 '<td>{name}</td></tr>',
-                '<tr><th>Creation</th>',
+                '<tr><th>'+this.msgCreation+'</th>',
                 '<td>{creation}</td></tr>',
-                '<tr><th>Description</th>',       
+                '<tr><th>'+this.msgDescription+'</th>',       
                 '<td>{description}</td></tr>',
-                '<tr><th>Category</th>',          
+                '<tr><th>'+this.msgCategory+'</th>',          
                 '<td>{category}</td></tr>',
-                '<tr><th>Metadata</th>',          
+                '<tr><th>'+this.msgMetadata+'</th>',          
                 '<td>{metadata}</td></tr>',
-                '<tr><th>Attributes</th>',        
+                '<tr><th>'+this.msgAttributes+'</th>',        
                 '<td>{attributes}</td></tr>',
                 '<td>{store}</td></tr>',
                 '</table>'
@@ -1336,7 +1450,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             instance.Resource.store= Ext.encode(instance.Resource.data);
             instance.Resource.category= Ext.encode(instance.Resource.category);
             Ext.Msg.show({
-                title: "Instance " + instance.Resource.id ,
+                title: this.msgInstance + " " + instance.Resource.id,
                 msg: tpl.applyTemplate(instance.Resource),
                 buttons: Ext.Msg.OK,
                 icon: Ext.Msg.INFO
@@ -1416,7 +1530,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var element =  Ext.decode(response);
             
             if(!("list" in element)){
-                alert("Lista non esistente");
+                alert(this.errUnexistingListMsg);
                 return;
             }
             
@@ -1473,7 +1587,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var layerRecordIndex = layerComboStore.find('name', layer);
 		var layerRecord = layerComboStore.getAt(layerRecordIndex);
 		var isRaster = layerRecord.data.wcs;  
-		
+
         if(layer && this.formPanel.crsCombo.getValue()) {
             this.formPanel.selectionMode.enable();
             this.formPanel.placeSearch.enable();
@@ -1484,6 +1598,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             this.formPanel.selectionMode.disable();
             this.formPanel.placeSearch.disable();
             this.formPanel.cutMode.disable();
+        }
+        
+        // show the vector filter fieldset if layer is selected and it is not a raster
+        if(layer && !isRaster) {
+            this.vectorFilterContainer.show();
+        } else {
+            this.vectorFilterContainer.collapse();
+            this.vectorFilterContainer.hide();
         }
     },
     
@@ -1566,11 +1688,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     var format = new OpenLayers.Format.XML();
                     try {
                         var xml = format.read(response.responseText);
-                        if(xml.getElementsByTagName("CoverageDescription").length > 0) {
+                        if(xml.getElementsByTagName("wcs:CoverageDescription").length > 0 || xml.getElementsByTagName("CoverageDescription").length > 0) {
                             return callback.call(scope, 'WCS');
                         }
                     } catch(e) {
-                        console.log(response);
+                        console.log('no wcs', response, e);
                     }
                     return callback.call(scope);
                 },
@@ -1596,12 +1718,23 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         return callback.call(scope, 'WFS');
                     }
                 } catch(e) {
-                    console.log(response);
+                    console.log('no wfs', response, e);
                 }
                 checkDescribeCoverage.call(this);
             },
             failure: checkDescribeCoverage
         });     
+    },
+    
+    createVectorFilterForm: function(schema) {        
+        this.vectorFilterContainer.removeAll();
+        this.vectorFilterContainer.add({
+            xtype: "gxp_filterbuilder",
+            ref: "../filterBuilder",
+            attributes: schema,
+            allowBlank: true,
+            allowGroups: false
+        });
     },
     
     showMask: function() {

@@ -1,7 +1,7 @@
 {
    "geoStoreBase":"http://84.33.2.30/geostore/rest/",
    "gnBaseUrl": "http://84.33.2.30/geonetwork/",
-   "proxy":"/http_proxy/proxy/?url=",
+   "proxy":"/proxy/?url=",
    "defaultLanguage": "it",
    "tab": true,
    "gsSources":{ 
@@ -92,6 +92,9 @@
     ],	
 	"customTools":[
 		{
+            "ptype": "gxp_featuremanager",
+            "id": "featuremanager"
+        },{
 			"ptype": "gxp_metadataexplorer",
 			"id": "metadataexplorer",
             "outputTarget": "south",
@@ -124,6 +127,7 @@
 			"useEvents": true
 		}, {
 			"ptype": "gxp_download",
+            "featureManager": "featuremanager",
 			"outputTarget": "west",
 			"index": 28,
 			"wpsUrl": "http://84.33.2.30/geoserverbz/ows?service=WPS",
