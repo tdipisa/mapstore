@@ -596,7 +596,53 @@ GeoExt.Lang.add("it", {
         
         errWPSTitle: "DownloadProcess non supportato",
         errWPSMsg: "Questo server WPS non supporta il processo gs:Download",
-		wpsErrorMsg: "Il WPS riporta il seguente errore"
+		wpsErrorMsg: "Il WPS riporta il seguente errore",
+        
+        emailNotificationTitle: "Notifica via email",
+        emailFieldLabel: "Email",
+
+        vectorFilterTitle: "Filtro",
+        
+        placeSearchLabel: "Località",
+        
+        errBufferTitle: "Buffer fallito",
+        errBufferMsg: "Errore nel buffering della geometria",
+        
+        errUnknownLayerTypeTitle: "Tipo layer sconosciuto",
+        errUnknownLayerTypeMsg: "Impossibile stabilire il tipo di layer. Selezionare un altro layer",
+        
+        msgEmptyEmailTitle: "Campo email vuoto",
+        msgEmptyEmailMsg: "La notifica via email è abilitata, ma il campo è vuoto. Continuare senza la notifica?",
+        
+        msgEmptyFilterTitle: "Campo filtro vuoto",
+        msgEmptyFilterMsg: "Il filtro è abilitato, ma non è stato specificato alcun filtro. Continuare senza filtro?",
+    
+        msgTooltipPending: 'In attesa',
+        msgTooltipSuccess: 'Completa',
+        msgTooltipExecuting: 'In esecuzione',
+        msgTooltipFailed: 'Fallita',
+        msgTooltipAccepted: 'Accettata',
+        
+        msgGeostoreException: "Eccezione Geostore",
+        
+        msgBox: 'Box',
+        msgPolygon: 'Poligono',
+        msgCircle: 'Cerchio',
+        msgPlace: 'Località',
+        
+        msgIntersection: 'Intersezione',
+        msgClip: 'Taglio',
+        
+        msgInstance: 'Istanza',
+        
+        msgName: 'Nome',
+        msgCreation: 'Creazione',
+        msgDescription: 'Descrizione',       
+        msgCategory: 'Categoria',          
+        msgMetadata: 'Metadata',
+        msgAttributes: 'Attributi',
+        
+        errUnexistingListMsg: "Lista non esistente"
     }
 	
 });

@@ -563,6 +563,45 @@ GeoExt.Lang.add("en", {
         
         errWPSTitle: "DownloadProcess not supported",
         errWPSMsg: "This WPS server does not support gs:Download process",
-		wpsErrorMsg: "The WPS reports the following error"
+		wpsErrorMsg: "The WPS reports the following error",
+    
+        errBufferTitle: "Buffer failed",
+        errBufferMsg: "Error buffering feature",
+        
+        errUnknownLayerTypeTitle: "Unknown layer type",
+        errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
+        
+        msgEmptyEmailTitle: "Empty email",
+        msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",
+        
+        msgEmptyFilterTitle: "Empty filter",
+        msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",
+        
+        msgTooltipPending: 'Pending',
+        msgTooltipSuccess: 'Success',
+        msgTooltipExecuting: 'Executing',
+        msgTooltipFailed: 'Failed',
+        msgTooltipAccepted: 'Accepted',
+        
+        msgGeostoreException: "Geostore Exception",
+        
+        msgBox: 'Box',
+        msgPolygon: 'Polygon',
+        msgCircle: 'Circle',
+        msgPlace: 'Place',
+        
+        msgIntersection: 'Intersection',
+        msgClip: 'Clip',
+        
+        msgInstance: 'Instance',
+        
+        msgName: 'Name',
+        msgCreation: 'Creation',
+        msgDescription: 'Description',       
+        msgCategory: 'Category',          
+        msgMetadata: 'Metadata',
+        msgAttributes: 'Attributes',
+        
+        errUnexistingListMsg: "Unexisting list"
     }
 });
