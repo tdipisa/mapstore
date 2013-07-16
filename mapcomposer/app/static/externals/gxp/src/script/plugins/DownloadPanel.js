@@ -405,6 +405,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         // ..if we are not adding the "buffered" version
                         // //////////////////////////////////////////////////////
                         this.spatialSelection.removeAllFeatures();
+                    } else {
+                        for(var i = 0; i < this.spatialSelection.features.length; i++) {
+                            var feature = this.spatialSelection.features[i];
+                            if(feature.attributes.isBuffered) this.spatialSelection.removeFeatures([feature]);
+                        }
                     }
 				});
                 this.spatialSelection.events.register("featureadded", this, function(){
@@ -1514,11 +1519,24 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         var crs = dform.crsCombo.getValue();
         var format = dform.formatCombo.getValue();
         
-        var wkt ;
-        if(this.spatialSelection.features.length > 0){
+        var wkt;
+        var len= this.spatialSelection.features.length;
+        if(len > 0){
             
             var formatwkt = new OpenLayers.Format.WKT();
-            var feature = this.spatialSelection.features[0];
+            
+            // ///////////////////////////////////////////////
+            // If there's more than a feature, one is the
+            // original one, and the other is the buffered one
+            // ///////////////////////////////////////////////
+            if(len == 1) {
+                var feature = this.spatialSelection.features[0];
+            } else {
+                for(var i = 0; i < len; i++) {
+                    var feature = this.spatialSelection.features[i];
+                    if(feature.attributes.isBuffered) break;
+                }
+            }
             
             var choosenProj = new OpenLayers.Projection(crs);
             var mapProj = this.target.mapPanel.map.getProjectionObject();
