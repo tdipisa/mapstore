@@ -370,23 +370,40 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				// ///////////////////////////////////
 				// Add Plugin controls Tools
 				// ///////////////////////////////////
-				this.spatialSelection = new OpenLayers.Layer.Vector("Spatial Selection",{
-					displayInLayerSwitcher: false
+                var rules = [];
+                var style = new OpenLayers.Style();
+                var rules = [new OpenLayers.Rule({
+                    filter: new OpenLayers.Filter.Comparison({
+                        type: OpenLayers.Filter.Comparison.EQUAL_TO,
+                        property: 'isBuffered',
+                        value: true
+                    }),
+                    symbolizer: {fillColor: '#FF0000', fillOpacity: 0.5}
+                }), new OpenLayers.Rule({
+                    symbolizer: {fillOpacity: 0.4}
+                })];
+                style.addRules(rules);
+                        
+				this.spatialSelection = new OpenLayers.Layer.Vector("Spatial Selection", {
+					displayInLayerSwitcher: false,
+                    styleMap: new OpenLayers.StyleMap({
+                        'default': style
+                    })
 				});
 				
-                this.spatialSelection.events.register("beforefeatureadded", this, function(){
-					// //////////////////////////////////////////////////////
-					// Remove the old features before drawing other features.
-					// //////////////////////////////////////////////////////
-					this.spatialSelection.removeAllFeatures();
-                    
+                this.spatialSelection.events.register("beforefeatureadded", this, function(){                    
 					// //////////////////////////////////////////////////////
 					// reset the buffer field when the geometry has changed
                     // the preventBufferReset is needed to avoid resetting it 
 					// when the buffered feature is added
 					// //////////////////////////////////////////////////////
-                    if(!this.spatialSelection._preventBufferReset) {
+                    if(!this.spatialSelection._addingBufferedFeature) {
                         this.formPanel.bufferField.reset();
+                        
+                        // //////////////////////////////////////////////////////
+                        // Remove the old features before drawing other features
+                        // ..if we are not adding the "buffered" version
+                        // //////////////////////////////////////////////////////
                         this.spatialSelection.removeAllFeatures();
                     }
 				});
@@ -469,6 +486,23 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         this.hideMask();
                     }
                 });
+                
+                //register the toogle event on all the map tools with a toggleGroup
+                //on toggle, deactivate the selection mode
+                this.target.toolbar.items.each(function(item) {
+                    if(item.toggleGroup) {
+                        item.on({
+                            scope: this,
+                            toggle: function(tool, toggle) {
+                                if(toggle) {
+                                    this.formPanel.selectionMode.reset();
+                                    //reset does not fire the select event
+                                    this.formPanel.selectionMode.fireEvent('select', this.formPanel.selectionMode);
+                                }
+                            }
+                        });
+                    }
+                }, this);
 			},
 			scope: this
 		});
@@ -499,6 +533,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var source, data = [];   
 
 		var layerSources = this.target.layerSources;
+        // //////////////////////////////////////////////
+        // Store the checks that will be done on the layer
+        // It contains check for layertype (wcs, wfs)
+        // and the availability of the download process
+        // It's here because the layerCombo store is
+        // loaded every time is expanded
+        // //////////////////////////////////////////////
+        if(!this.layersAttributes) this.layersAttributes = {};
 
 		for (var id in layerSources) {
 			source = layerSources[id];
@@ -523,25 +565,31 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						    var record = records[i]; 
 							
 							if(record){
-								var recordData = [id, record.data.name];
+								var recordData = [id, record.data.name, record.id];
 								
-								// ////////////////////////////////////////////////////
-								// The keyword control is necessary in order         //
-								// to markup a layers as Raster or Vector in order   //
-								// to set a proper format in the 'Format' combo box. //
-								// ////////////////////////////////////////////////////
-								var keywords = record.get("keywords");								
-								if(keywords){
-									for(var k=0; k<keywords.length; k++){
-										var keyword = keywords[k].value || keywords[k];
-										
-										if(keyword.indexOf("WCS") != -1){
-											recordData.push(true);
-											break;
-										}                       
-									}
+                                if(this.layersAttributes[record.id]) {
+                                    recordData.push(this.layersAttributes[record.id].wcs);
+                                    recordData.push(this.layersAttributes[record.id].wfs);
+                                    recordData.push(this.layersAttributes[record.id].wpsdownload);
+                                } else {
+                                    this.layersAttributes[record.id] = {wcs: false, wfs: false, wpsdownload: false};
+                                    // ////////////////////////////////////////////////////
+                                    // The keyword control is necessary in order         //
+                                    // to markup a layers as Raster or Vector in order   //
+                                    // to set a proper format in the 'Format' combo box. //
+                                    // ////////////////////////////////////////////////////
+                                    var keywords = record.get("keywords");								
+                                    if(keywords){
+                                        for(var k=0; k<keywords.length; k++){
+                                            var keyword = keywords[k].value || keywords[k];
+                                            
+                                            if(keyword.indexOf("WCS") != -1){
+                                                recordData.push(true);
+                                                break;
+                                            }                       
+                                        }
+                                    }
 								}
-								
 								data.push(recordData);  
 							}
 						}              
@@ -580,13 +628,22 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         } else {
             this.formPanel.placeSearch.hide();
         }
+        var toolActivated = false;
         for(key in this.drawControls) {
             var control = this.drawControls[key];
             if(value == key) {
                 control.activate();
+                toolActivated = true;
             } else {
                 control.deactivate();
             }
+        }
+        
+        //if a draw tool has been activated, deactivate other "toggleGroup" tools
+        if(toolActivated) {
+            this.target.toolbar.items.each(function(item) {
+                if(item.toggleGroup) item.toggle(false);
+            });
         }
 	},
     
@@ -600,7 +657,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// Stores Array stores definitions.
 		// /////////////////////////////////////
 		this.layerStore = new Ext.data.ArrayStore({
-			fields: ["source", "name", "wcs"],
+			fields: ["source", "name", "olid", {name: "wcs", type: 'boolean'}, {name: "wfs", type: 'boolean'}, {name: "wpsdownload", type: 'boolean'}],
 			data: []
 		});
 			
@@ -642,7 +699,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						    this.toggleControl();
 							this.resetForm();
 						},
-						select: function(combo, record, index){									
+						select: function(combo, record, index){
 						    // ////////////////////////////////////////
 							// Remove the previous selected layer, 
 							// from this tool if exists.
@@ -650,91 +707,63 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							if(this.selectedLayer){
 								this.target.mapPanel.layers.remove(this.selectedLayer);
 							}
-							
-							var layerSource = this.target.layerSources[record.data.source];
-							var url = this.buildLayerWPSUrl(layerSource.url);
-                            url += "&version=" + this.wpsDefaultVersion + "&request=DescribeProcess&identifier=gs:Download";
-							
-                            var requestUrl = this.isSameOrigin(url) ? url : this.target.proxy + encodeURIComponent(url);
-                            var Request = Ext.Ajax.request({
-                                url: requestUrl,
-                                method: 'GET',
-                                scope: this,
-                                success: function(response, opts){
-                                    if(response.responseXML){
-                                        var xml= response.responseXML;
-                                        if(xml.getElementsByTagName("ProcessDescription").length == 0){
-                                            Ext.Msg.show({
-                                                title: this.errWPSTitle,
-                                                msg: this.errWPSMsg,
-                                                buttons: Ext.Msg.OK,
-                                                icon: Ext.MessageBox.ERROR
-                                            });
-                                            this.formPanel.downloadButton.disable();
-                                        }else{
-                                            this.formPanel.downloadButton.enable();
-                                        }
-                                    }else{		
-                                        Ext.Msg.show({
-                                            title: this.describeProcessErrorMsg,
-                                            msg: response.statusText + "(status " + response.status + "):  " + response.responseText,
-                                            buttons: Ext.Msg.OK,
-                                            icon: Ext.MessageBox.ERROR
-                                        });   
-                                    }
-                                },
-                                failure: function(response, opts){
-                                    console.error(response);
-                                }
-                            });     
+                            
+                            if(!record.get('wpsdownload')) this.checkWpsDownload(record);
         
 							// ////////////////////////////
 							// Add the new selected layer.
 							// ////////////////////////////
-							var layerName = record.data.name;
-							var layerSource = record.data.source;
-							//var isWCS = record.data.wcs;
-							
-							// ///////////////////////////////////////////
-                            // check the layer type
-                            // async because it may need to check for 
-							// describeFeatureType and describeCoverage
-                            // ///////////////////////////////////////////
-							this.getLayerType(record.data, function(layerType) {
-                                if(!layerType) {
-                                    this.formPanel.downloadButton.disable();
-                                    this.formPanel.resetButton.disable();
-                                    this.formPanel.refreshButton.disable();
-                                    return Ext.Msg.show({
-                                        title: this.errUnknownLayerTypeTitle,
-                                        msg: this.errUnknownLayerTypeMsg,
-                                        buttons: Ext.Msg.OK,
-                                        icon: Ext.Msg.INFO
-                                    });
-                                }
+							var addLayer = function(record, layerType) {
+                                var options = {
+                                    msLayerTitle: record.data.name,
+                                    msLayerName: record.data.name,
+                                    source: record.data.source,
+                                    customParams: {
+                                        wcs: (layerType == 'WCS')
+                                    }
+                                };
                                 
-                                record.data.wcs = (layerType == 'WCS');
-                                
-								var options = {
-									msLayerTitle: layerName,
-									msLayerName: layerName,
-									source: layerSource,
-									customParams: {
-										wcs: (layerType == 'WCS')
-									}
-								};
-								
-								this.addLayerTool.addLayer(
-									options
-								);
+                                this.addLayerTool.addLayer(
+                                    options
+                                );
                                 
                                 this.updateFormStatus();
                                 
                                 this.formPanel.downloadButton.enable();
                                 this.formPanel.resetButton.enable();
                                 this.formPanel.refreshButton.enable();
-                            }, this);
-						}, 
+                            };
+                            
+							// ///////////////////////////////////////////
+                            // check the layer type, if it is unknown
+                            // async because it may need to check for 
+							// describeFeatureType and describeCoverage
+                            // ///////////////////////////////////////////
+                            if(!record.get('wcs') && !record.get('wfs')) {
+                                this.getLayerType(record.data, function(layerType) {
+                                    if(!layerType) {
+                                        this.formPanel.downloadButton.disable();
+                                        this.formPanel.resetButton.disable();
+                                        this.formPanel.refreshButton.disable();
+                                        return Ext.Msg.show({
+                                            title: this.errUnknownLayerTypeTitle,
+                                            msg: this.errUnknownLayerTypeMsg,
+                                            buttons: Ext.Msg.OK,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }
+                                    
+                                    record.set('wcs', (layerType == 'WCS'));
+                                    this.layersAttributes[record.get('olid')].wcs = (layerType == 'WCS');
+                                    record.set('wfs', (layerType == 'WFS'));
+                                    this.layersAttributes[record.get('olid')].wfs = (layerType == 'WFS');
+                                    
+                                    addLayer.call(this, record, layerType);
+                                }, this);
+                            } else {
+                                addLayer.call(this, record, (record.get('wcs') ? 'WCS' : 'WFS'));
+                            }
+						},
 						beforequery: function(){
 							this.reloadLayers();
 						}
@@ -823,14 +852,16 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     disabled: true,
 					width: 140,
 					allowBlank: false,
+                    editable: false,
                     valueField: 'value',
                     displayField: 'text',
                     triggerAction: 'all',
                     mode: 'local',
+                    value: null,
                     store: new Ext.data.ArrayStore({
                         fields: ['value', 'text'],
                         data: [
-                            ['box', this.msgBox], ['polygon', this.msgPolygon], ['circle', this.msgCircle], ['place', this.msgPlace]
+                            [null, ''], ['box', this.msgBox], ['polygon', this.msgPolygon], ['circle', this.msgCircle], ['place', this.msgPlace]
                         ]
                     }),
 					listeners: {
@@ -1847,10 +1878,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         icon: Ext.Msg.ERROR
                     });
                 }
-                var bufferedFeature = new OpenLayers.Feature.Vector(geometry);
-                this.spatialSelection._preventBufferReset = true;
+                var bufferedFeature = new OpenLayers.Feature.Vector(geometry, {isBuffered: true});
+                this.spatialSelection._addingBufferedFeature = true;
                 this.spatialSelection.addFeatures([bufferedFeature]);
-                this.spatialSelection._preventBufferReset = false;
+                this.spatialSelection._addingBufferedFeature = false;
                 this.unBufferedFeature = feature; //copy the "original" feature, without any buffer applied
                 this.target.mapPanel.map.zoomToExtent(geometry.getBounds());
             }
@@ -1948,6 +1979,48 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             attributes: schema,
             allowBlank: true,
             allowGroups: false
+        });
+        this.vectorFilterContainer.doLayout();
+    },
+    
+    checkWpsDownload: function(record) {
+        var layerSource = this.target.layerSources[record.data.source];
+        var url = this.buildLayerWPSUrl(layerSource.url);
+        url += "&version=" + this.wpsDefaultVersion + "&request=DescribeProcess&identifier=gs:Download";
+        
+        var requestUrl = this.isSameOrigin(url) ? url : this.target.proxy + encodeURIComponent(url);
+        var Request = Ext.Ajax.request({
+            url: requestUrl,
+            method: 'GET',
+            scope: this,
+            success: function(response, opts){
+                if(response.responseXML){
+                    var xml= response.responseXML;
+                    if(xml.getElementsByTagName("ProcessDescription").length == 0){
+                        Ext.Msg.show({
+                            title: this.errWPSTitle,
+                            msg: this.errWPSMsg,
+                            buttons: Ext.Msg.OK,
+                            icon: Ext.MessageBox.ERROR
+                        });
+                        this.formPanel.downloadButton.disable();
+                    }else{
+                        this.formPanel.downloadButton.enable();
+                        record.set('wpsdownload', true);
+                        this.layersAttributes[record.get('olid')].wpsdownload = true;
+                    }
+                }else{		
+                    Ext.Msg.show({
+                        title: this.describeProcessErrorMsg,
+                        msg: response.statusText + "(status " + response.status + "):  " + response.responseText,
+                        buttons: Ext.Msg.OK,
+                        icon: Ext.MessageBox.ERROR
+                    });   
+                }
+            },
+            failure: function(response, opts){
+                console.error(response);
+            }
         });
     },
     
