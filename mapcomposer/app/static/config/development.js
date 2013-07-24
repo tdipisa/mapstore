@@ -7,7 +7,7 @@
    "gsSources":{ 
    		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://84.33.2.30/geoserver/ows",
+			"url": "http://84.33.2.30/geoserverbz/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
 				"TILED": true,
@@ -126,7 +126,7 @@
 			"ptype": "gxp_download",
 			"outputTarget": "west",
 			"index": 28,
-			"wpsUrl": "http://84.33.2.30/geoserver/ows?service=WPS",
+			"wpsUrl": "http://84.33.2.30/geoserverbz/ows?service=WPS",
 			"wpsProxy": "/proxy/?url=",
 			"geostoreUrl": "http://84.33.2.30/geostore/rest",
             "geostoreProxy": "/proxy/?url=",
