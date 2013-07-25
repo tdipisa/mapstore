@@ -521,5 +521,52 @@ GeoExt.Lang.add("fr", {
 		resetText: "Rréinitialiser",
 		failedUploadingTitle: "Téléchargement de fichier erreur",
 		layerNameLabel: "Nom de la couche"
+    },
+	
+	"gxp.plugins.DownloadPanel.prototype":{
+        tabTitle: "Télécharger",
+    
+        dselTitle: "Sélection des données",
+        dselLayer: "Couche",
+        dselCRS: "Cible CRS",
+        dselFormat: "Format",
+        
+        settingTitle: "Réglages spatiales",
+        settingSel: "Mode de sélection",
+        settingCut: "Couper mode",
+        
+        optTitle: "Paramètres facultatifs",
+        optEmail: "Filtrez",
+        optEmail: "Email",
+    
+        resTitle: "Résultats",
+        resID: "ID",
+        resExecID: "execID",
+        resProcStatus: "État du processus",
+        resGet: "Obtenez",
+        resDelete: "Supprimer",
+        resPhase: "Période",
+        resProgress: "Progress",
+        resResult: "Résultat",
+        
+        btnRefreshTxt: "Actualiser",
+        btnResetTxt: "Réinitialiser",
+        btnDownloadTxt: "Télécharger",
+        
+        errMissParamsTitle: "Paramètres manquants" ,
+        errMissParamsMsg: "S'il vous plaît remplir tous les champs obligatoires" ,
+        
+        errMissGeomTitle: "Fonctionnalité manquante" ,
+        errMissGeomMsg: "S'il vous plaît dessiner la zone d'intérêt avant de soumettre" ,
+    
+        msgRemRunningTitle:"Retirer instance d'exécution",
+        msgRemRunningMsg:  "Vous êtes sur le point de supprimer une instance en cours d'exécution, vous ne serez pas en mesure de récupérer le résultat <br/> Voulez-vous vraiment supprimer exemple?",
+        msgRemTitle: "Retirer instance",
+        msgRemMsg: "Voulez-vous supprimer exemple?",
+        msgRemDone: "Instance enlevé.",
+        
+        errWPSTitle: "Télécharger Process non pris en charge",
+        errWPSMsg: "Ce serveur WPS ne fonctionne pas avec gs: processus de téléchargement",
+		wpsErrorMsg: "Les WPS signale l'erreur suivante"
     }
 });

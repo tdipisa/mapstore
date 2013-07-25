@@ -556,14 +556,13 @@ GeoExt.Lang.add("en", {
         errMissGeomMsg: "Please draw the Area of Interest before submitting" ,
     
         msgRemRunningTitle:"Remove Running Instance",
-        msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retreave the result<br/>Do you really want to delete instance ?",
+        msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retrieve the result<br/>Do you really want to delete instance ?",
         msgRemTitle: "Remove Instance",
         msgRemMsg: "Do you want to delete instance ?",
         msgRemDone: "Instance removed.",
         
         errWPSTitle: "DownloadProcess not supported",
         errWPSMsg: "This WPS server does not support gs:Download process",
-
+		wpsErrorMsg: "The WPS reports the following error"
     }
-
 });

@@ -602,9 +602,7 @@ GeoExt.Lang.add("de", {
         msgRemDone: "Instanz entfernt.",
        
         errWPSTitle: "DownloadProcess nicht unterstützt",
-        errWPSMsg: "Das WPS-Server nicht unterstützt gs: Download-Prozess"
-         
+        errWPSMsg: "Das WPS-Server nicht unterstützt gs: Download-Prozess",
+		wpsErrorMsg: "Die WPS berichtet die folgende Fehlermeldung"         
     }
-
-
 });

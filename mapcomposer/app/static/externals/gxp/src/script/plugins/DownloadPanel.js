@@ -209,6 +209,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     
     errWPSTitle: "DownloadProcess not supported",
     errWPSMsg: "This WPS server does not support gs:Download process",
+	wpsErrorMsg: "The WPS reports the following error",
     
     /** private: method[constructor]
      */
@@ -638,6 +639,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             fieldLabel: this.placeSearchLabel,
             hidden: true,
             disabled: true,
+			width: 140,
             ref: "../placeSearch",
             listeners: {
                 scope: this,
@@ -826,15 +828,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     id       : 'executionStatus',
                     header   : this.resProcStatus, 
                     width    : 63, 
-                    dataIndex: 'executionStatus'
-                    ,renderer:  function (val, obj, record) {
-                                    if(!val)
-                                        return;
-                                    if(val!='Failed' && record.data.phase){
-                                        return Ext.util.Format.capitalize(record.data.phase);
-                                    }
-                                    return val;
-                                }
+                    dataIndex: 'executionStatus',
+					renderer:  function (val, obj, record) {
+						if(!val)
+							return;
+						if(val!='Failed' && record.data.phase){
+							return Ext.util.Format.capitalize(record.data.phase);
+						}
+						return val;
+					}
                 },
                 {
                     xtype: 'actioncolumn',
@@ -843,7 +845,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     items: [{
                             getClass: function(v, meta, rec) { 
                                 var tooltip = '', icnClass='decline';
-                                switch (rec.get('executionStatus')) {    
+								var execStatus = rec.get('executionStatus'); 
+                                switch (execStatus) {    
                                     case 'Process Pending':
                                     case 'Pending':
                                         icnClass = 'decline';
@@ -864,6 +867,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                         if(rec.get('phase')=='COMPLETED'){
                                             icnClass = 'accept';
                                             tooltip = 'Success';
+                                        }else if(rec.get('phase')=='FAILED'){
+                                            icnClass = 'decline';
+                                            tooltip = 'Failed';
                                         }else{
                                             icnClass = 'loading';
                                             tooltip = 'Accepted';
@@ -871,7 +877,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                         break;
                                     default:
                                         icnClass = 'decline';
-                                        tooltip = rec.get('executionStatus');
+                                        tooltip = execStatus;
                                         break;
                                 }
                                 this.items[0].tooltip = tooltip;
@@ -879,7 +885,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             },
                             handler: function(grid, rowIndex, colIndex) {
                                 var rec = store.getAt(rowIndex);
-                                if(rec.get('executionStatus').indexOf('Succeeded')!= -1){
+								var execStatus = rec.get('executionStatus'); 
+                                if(execStatus.indexOf('Succeeded')!= -1){
                                     mydlp.getInstance(rec.get('id'));
                                 }
                             }
@@ -921,31 +928,41 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 },*/{
                     //xtype: 'actioncolumn',
                     header: this.resResult, 
-                    width: 53
+                    width: 53,
+                    dataIndex: 'result',
                     /*items: [{
-                            getClass: function(v, meta, rec) { 
-                                var tooltip = '', icnClass='';
-                                console.log(rec.get('result'));
-                                if(rec.get('result')!= '') {    
-                                        icnClass = 'download';
-                                        tooltip = 'Download result';
-                                }
-                                this.items[0].tooltip = tooltip;
-                                return icnClass;
-                            },
-                            handler: function(grid, rowIndex, colIndex) {
-                                var rec = store.getAt(rowIndex);
-                                console.log(rec.get('result'));
-                            }
-                            
+						getClass: function(v, meta, rec) { 
+							var tooltip = '', icnClass='';
+							console.log(rec.get('result'));
+							if(rec.get('result')!= '') {    
+									icnClass = 'download';
+									tooltip = 'Download result';
+							}
+							this.items[0].tooltip = tooltip;
+							return icnClass;
+						},
+						handler: function(grid, rowIndex, colIndex) {
+							var rec = store.getAt(rowIndex);
+							console.log(rec.get('result'));
+						}
                     }],*/
-                    ,renderer:function (val, obj, record) {
-                                if(!val)
-                                    return;
-                                return '<a href="' + record.data.result + '" target="_blank" /><img src="theme/app/img/download.png" /></a>';
-                            }
-                    ,dataIndex: 'result'
-
+                    renderer:function (val, obj, record) {
+						if(!val){
+							return;
+						}else{		
+							//
+							// Regular expression to check if we have a valid URL
+							//
+							var regex = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;							
+							if(regex.test(val)){
+								return '<a href="' + val + '" target="_blank" /><img src="theme/app/img/download.png" /></a>';
+							}else{
+							    var message = mydlp.wpsErrorMsg;
+							    var html = '<img src="theme/app/img/download.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>';								
+								return html;
+							}
+						}
+					}
                 },
             ],
             //stripeRows: true,
@@ -961,15 +978,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             listeners:{
                 viewready:{
                     fn: function(){
-                        this.getInstances(true);
-                        //this.startRunner();
-                        },
+						this.getInstances(true);
+						//this.startRunner();
+					},
                     scope: this
                 }
             },
             scope:this
         });
-        
         
 		// /////////////////////////////////////
 		// FormPanel definition
@@ -1097,7 +1113,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         var cropSel = dform.cutMode.getValue();
         
         if(cropSel)
-            crop = cropSel.inputValue === true ? "true" : "false";
+            crop = cropSel;//.inputValue === true ? "true" : "false";
         
         var layer = dform.layerCombo.getValue();
         var crs = dform.crsCombo.getValue();
@@ -1335,9 +1351,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         }
         
         // TODO: i nomi dei campi delle due richieste wps non coincidono, workaround temporaneo
-        if( r.get('executionStatus') == 'Failed'){
+        /*if( r.get('executionStatus') == 'Failed'){
             return;
-        }
+        }*/
         
         if( r.get('phase') && r.get('phase') != 'RUNNING' ){
             return;
