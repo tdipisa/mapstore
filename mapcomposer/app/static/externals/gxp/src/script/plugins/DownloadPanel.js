@@ -59,20 +59,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
     wpsUrl: null,
     
-    /** api: config[wpsProxy]
-     *  ``String``
-     */
-    wpsProxy: null,
-    
     /** api: config[geostoreUrl]
      *  ``String``
      */
     geostoreUrl: null,
-    
-    /** api: config[geostoreProxy]
-     *  ``String``
-     */
-    geostoreProxy: null,
     
     /** api: config[geostoreUser]
      *  ``String``
@@ -159,7 +149,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     /** api: config[bufferRequestTimeout]
      *  ``Integer``
      */
-    bufferRequestTimeout: 3 * 1000,
+    bufferRequestTimeout: 1 * 1000,
     
     tabTitle: "Download",
     
@@ -254,7 +244,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				// Add Plugin controls Tools
 				// ///////////////////////////////////
 				this.spatialSelection = new OpenLayers.Layer.Vector("Spatial Selection",{
-					displayInLayerSwitcher: false
+					displayInLayerSwitcher: false,
 				});
 				
                 this.spatialSelection.events.register("beforefeatureadded", this, function(){
@@ -320,12 +310,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				    this.wpsManager = new gxp.plugins.WPSManager({
                         id: "DownloadPanelWPSManager",
                         url: this.wpsUrl,
-                        proxy: this.wpsProxy,
+                        proxy: this.target.proxy,//this.wpsProxy,
                         geoStoreClient: new gxp.plugins.GeoStoreClient({
                             url: this.geostoreUrl,
                             user: this.geostoreUser,
                             password: this.geostorePassword,
-                            proxy: this.geostoreProxy,
+                            proxy: this.target.proxy,//this.geostoreProxy,
                             listeners: {
                                 "geostorefailure": function(tool, msg){
                                     Ext.Msg.show({
@@ -444,7 +434,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
 	resetForm: function(){
 		this.formPanel.getForm().reset();
-        this.spatialSelection.removeAllFeatures();
+        this.toggleControl(); //this.spatialSelection.removeAllFeatures();
 	},
 	
     /** private: method[toggleControl]
@@ -536,7 +526,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							}
 							
                             var Request = Ext.Ajax.request({
-                                url: this.wpsProxy + encodeURIComponent(this.wpsUrl+"&version=1.0.0&request=DescribeProcess&identifier=gs:Download"),
+                                url: /*this.wpsProxy*/ this.target.proxy + encodeURIComponent(this.wpsUrl+"&version=1.0.0&request=DescribeProcess&identifier=gs:Download"),
                                 method: 'GET',
                                 scope: this,
                                 success: function(response, opts){
@@ -590,7 +580,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								);
 							}
                             
-                            this.spatialSelection.removeAllFeatures();
+                            this.toggleControl();//this.spatialSelection.removeAllFeatures();
                             this.updateFormStatus();
 						}, 
 						beforequery: function(){
@@ -620,7 +610,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             this.spatialSettings.items.each(function(field) {
                                 field.reset();
                             });
-                            this.spatialSelection.removeAllFeatures();
+                            this.toggleControl(); //this.spatialSelection.removeAllFeatures();
                             this.updateFormStatus();
                         }
                     }
@@ -1141,7 +1131,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             
             var clone = feature.geometry.clone();
             
-            clone.transform(mapProj, choosenProj);
+            clone = clone.transform(mapProj, choosenProj);
                        
             var tf = new OpenLayers.Feature.Vector(clone);
             wkt = formatwkt.write(tf);
@@ -1357,10 +1347,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     
     pendingRows: 0,
     
-    updateRecord: function(r){
+    updateRecord: function(r){        
+		var phase = r.get('phase');
+		var execId = r.get('executionId');
+		var execStatus = r.get('executionStatus');
         
-        
-        if(!r.get('executionId')){
+        if(!execId){
             return;
         }
         
@@ -1369,7 +1361,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             return;
         }*/
         
-        if( r.get('phase') && r.get('phase') != 'RUNNING' ){
+        if(phase && phase != 'RUNNING'){
             return;
         }
         
@@ -1438,10 +1430,22 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             this.formPanel.bufferField.disable();
         }
         
-        if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()) {
+		var layer = this.formPanel.layerCombo.getValue();
+		
+		//
+		// If the layer is a raster layer the cut mode combo should not be enabled
+		//
+		var layerComboStore = this.formPanel.layerCombo.getStore();
+		var layerRecordIndex = layerComboStore.find('name', layer);
+		var layerRecord = layerComboStore.getAt(layerRecordIndex);
+		var isRaster = layerRecord.data.wcs;  
+		
+        if(layer && this.formPanel.crsCombo.getValue()) {
             this.formPanel.selectionMode.enable();
             this.formPanel.placeSearch.enable();
-            this.formPanel.cutMode.enable();
+			if(!isRaster){
+				this.formPanel.cutMode.enable();
+			}
         } else {
             this.formPanel.selectionMode.disable();
             this.formPanel.placeSearch.disable();
