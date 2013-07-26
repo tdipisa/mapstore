@@ -355,7 +355,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         executeOptions.processInstance=instanceName;                        
                         process.execute(executeOptions);                        
                         return instanceName;
-                    }
+                    };
 				}
 				
 			},
@@ -433,8 +433,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	 *  Allows the possibility to reset the internal Form.
      */
 	resetForm: function(){
+		this.toggleControl();
 		this.formPanel.getForm().reset();
-        this.toggleControl(); //this.spatialSelection.removeAllFeatures();
 	},
 	
     /** private: method[toggleControl]
@@ -514,6 +514,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					listeners:{
 					    scope: this,
 						beforeselect: function(combo, record, index){
+						    this.toggleControl();
 							this.resetForm();
 						},
 						select: function(combo, record, index){									
@@ -580,7 +581,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								);
 							}
                             
-                            this.toggleControl();//this.spatialSelection.removeAllFeatures();
                             this.updateFormStatus();
 						}, 
 						beforequery: function(){
@@ -651,9 +651,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     if(feature.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
                         var buffered = OpenLayers.Geometry.Polygon.createRegularPolygon(feature.geometry, 1000, 4);
                         bounds = buffered.getBounds();
-                        this.placeSearch.allowBlank = false;
+                        this.formPanel.bufferField.allowBlank = false;
                     } else {
-                        this.placeSearch.allowBlank = true;
+                        this.formPanel.bufferField.allowBlank = true;
                     }
 
                     this.target.mapPanel.map.zoomToExtent(bounds);
@@ -968,7 +968,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             ],
             //stripeRows: true,
             //autoExpandColumn: 'description',
-            height: 150,
+            height: 205,
             //width: 600,
             title: this.resTitle,
             /*
@@ -1193,8 +1193,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     executionId: '',
                     executionStatus: '',
                     description: '',
-                    description: '',
-                    description: '',
+                    //description: '',
+                    //description: '',
                     status:''
                 };
                 data.id = instances[i].id;
@@ -1207,7 +1207,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     case 'Process Paused':
                     case 'Process Failed':
                     case 'Process Succeeded':
-                        data.executionStatus = dsc.status.replace('Process ', '');;
+                        data.executionStatus = dsc.status.replace('Process ', '');
                         break;
                     default:
                         data.executionStatus = dsc.status;
