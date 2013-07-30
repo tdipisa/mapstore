@@ -1247,7 +1247,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		this.formPanel = downloadForm;
         
 		var panel = gxp.plugins.DownloadPanel.superclass.addOutput.call(this, downloadForm);		
-		//panel.autoScroll = true;
+		panel.autoScroll = true;
 		return panel;
     },
     
