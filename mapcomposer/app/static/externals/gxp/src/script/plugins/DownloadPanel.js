@@ -137,9 +137,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     resultPanel: null,
 
     /** 
-     *  ``gxp.plugins.WPSManager``
+     *  ``gxp.plugins.wpsClusterManager``
      */
-    wpsManager: null,
+    wpsClusterManager: null,
 
     /** 
      *  ``gxp.plugins.FeatureManager``
@@ -368,9 +368,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					this.target.mapPanel.map.addControl(this.drawControls[key]);
 				}
 				
-				if (!this.wpsManager){
-				    this.wpsManager = new gxp.plugins.WPSManager({
-                        id: "DownloadPanelWPSManager",
+				if (!this.wpsClusterManager){
+				    this.wpsClusterManager = new gxp.plugins.WPSClusterManager({
+                        id: "DownloadPanelwpsClusterManager",
                         url: this.wpsUrl,
                         proxy: this.target.proxy,//this.wpsProxy,
                         geoStoreClient: new gxp.plugins.GeoStoreClient({
@@ -391,34 +391,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             }
                         })
                     });
-                    
-                    this.wpsManager.execute = function(processName, executeRequest, callback, scope) {
-                        if(!scope)
-                            scope = this;
-                            
-                        var process = this.wpsClient.getProcess('opengeo', processName);    
-                        var instanceName=null;
-                        var executeOptions;
-                        var me= this;
-                        
-                        if(executeRequest instanceof Object){                
-                            executeOptions= executeRequest;
-                        }else{                
-                            executeOptions= new OpenLayers.Format.WPSExecuteRequest().read(executeRequest).processInput;                        
-                        }   
-                        
-                        instanceName=this.getInstanceName(processName);
-                        executeOptions.scope= this;
-                        executeOptions.success= function(response, processInstance){
-                            if(processName == 'gs:Download') 
-                                me.responseManager(response, processInstance);
-                            callback.call(scope, response);
-                        };
-                       
-                        executeOptions.processInstance=instanceName;                        
-                        process.execute(executeOptions);                        
-                        return instanceName;
-                    };
 				}
                 
                 this.featureManager = this.target.tools[this.featureManager];
@@ -429,13 +401,26 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         this.hideMask();
                     }
                 });
-				
 			},
 			scope: this
 		});
         
 		return gxp.plugins.DownloadPanel.superclass.init.apply(this, arguments);
     },
+
+	/**
+	* api: method[buildLayerWPSUrl]
+	*
+	* This method to use the specific layer's URL for WPS requests
+	*/
+	buildLayerWPSUrl: function(url){
+		var newURL = url.replace(/\/wms/g, "/ows");
+		newURL = newURL.concat("?service=WPS");
+		
+		this.wpsClusterManager.setWPSClient(newURL);
+		
+		return newURL;
+	},
 	
 	/** private: method[reloadLayers]
 	 * 
@@ -598,7 +583,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								this.target.mapPanel.layers.remove(this.selectedLayer);
 							}
 							
-                            var url = this.wpsUrl+"&version="+this.wpsDefaultVersion+"&request=DescribeProcess&identifier=gs:Download";
+							var layerSource = this.target.layerSources[record.data.source];
+							var url = this.buildLayerWPSUrl(layerSource.url);
+                            url += "&version=" + this.wpsDefaultVersion+"&request=DescribeProcess&identifier=gs:Download";
+							
                             var requestUrl = this.isSameOrigin(url) ? url : this.target.proxy + encodeURIComponent(url);
                             var Request = Ext.Ajax.request({
                                 url: requestUrl,
@@ -840,7 +828,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         ]
                     })
                 }
-/* 			    {
+				/*{
 					xtype: 'radiogroup',
 					ref: "../cutMode",
                     disabled: true,
@@ -899,6 +887,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         var store = new Ext.data.ArrayStore({
             fields: [
                {name: 'id'},
+			   {name: 'name'},
                {name: 'executionId'},
                {name: 'executionStatus'},
                {name: 'phase'},
@@ -918,6 +907,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     width    : 30, 
                     hidden : true, 
                     dataIndex: 'id'
+                },
+				{
+                    id       : 'name',
+                    header   : "Name", 
+                    width    : 30, 
+                    hidden : true, 
+                    dataIndex: 'name'
                 },
                 {
                     id       : 'executionId',
@@ -953,6 +949,19 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                     case 'Pending':
                                         icnClass = 'decline';
                                         tooltip = mydlp.msgTooltipPending;
+                                        break;
+									case 'Process Running':
+                                    case 'Running':
+                                        if(rec.get('phase')=='COMPLETED'){
+                                            icnClass = 'accept';
+                                            tooltip = 'Success';
+                                        }else if(rec.get('phase')=='FAILED'){
+                                            icnClass = 'decline';
+                                            tooltip = 'Failed';
+                                        }else{
+                                            icnClass = 'loading';
+                                            tooltip = 'Accepted';
+                                        }
                                         break;
                                     case 'Process Succeeded':
                                     case 'Succeeded':
@@ -1094,8 +1103,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// /////////////////////////////////////
 		var downloadForm = new Ext.form.FormPanel({
 			title: this.tabTitle,
+			region: 'center',
 			labelWidth: 80,
-            autoHeight: true,
 			monitorValid: true,
 			items:[
 				this.laySel,
@@ -1173,7 +1182,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         
                         var requestFunction = function() {
 							var asreq = this.getAsyncRequest(downloadForm);
-    						this.wpsManager.execute('gs:Download', asreq, this.executeCallback, this);
+    						this.wpsClusterManager.execute('gs:Download', asreq, this.executeCallback, this);
                         };
                         
                         //check the email notification field
@@ -1220,7 +1229,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         
 						if(this.spatialSelection.features.length){
                             requestFunction.call(this);
-    						// startRunner()
 						}else{
                             Ext.Msg.show({
                                 title: this.errMissGeomTitle ,
@@ -1239,6 +1247,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		this.formPanel = downloadForm;
         
 		var panel = gxp.plugins.DownloadPanel.superclass.addOutput.call(this, downloadForm);		
+		//panel.autoScroll = true;
 		return panel;
     },
     
@@ -1247,7 +1256,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */        
     executeCallback: function(instanceOrRawData){
         var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
-        task.delay(1000); 
+        task.delay(1000);
+		
+		var task2 = new Ext.util.DelayedTask(this.startRunner, this, [false]);
+        task2.delay(1500);
+		
         //setTimeout("getInstances(false)", 1000);
     },
     
@@ -1282,9 +1295,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             
             //console.log(wkt);
         }
-        
-        
-        
+
         var request = {
             storeExecuteResponse: true,
             lineage:  true,
@@ -1326,11 +1337,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         return request;
     },    
     
-    getInstances: function(update){
-        
+    getInstances: function(update){        
         // TODO getExecuteInstances deve essere slegato da geostore
         var me = this;
-        this.wpsManager.getExecuteInstances("gs:Download", update, function(instances){
+        this.wpsClusterManager.getExecuteInstances("gs:Download", update, function(instances){
             var store = me.resultPanel.getStore();
             store.removeAll();
             var dsc, p;
@@ -1338,16 +1348,24 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 //console.log(instances[i]);
                 var data = {
                     id: '',
+					name: '',
                     executionId: '',
                     executionStatus: '',
                     description: '',
                     //description: '',
                     //description: '',
+					progress: '',
+					result: '',
                     status:''
                 };
                 data.id = instances[i].id;
-                //data.name = instances[i].name;
+                data.name = instances[i].name;
+				
                 dsc = Ext.decode(instances[i].description);
+				
+				data.progress = dsc.progress;
+				data.result = dsc.result;
+				
                 //console.log(dsc);
                 switch(dsc.status){
                     case 'Process Started':
@@ -1361,7 +1379,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         data.executionStatus = dsc.status;
                         break;
                 }
-                if(dsc.statusLocation){
+				
+				data.executionId = dsc.executionId;
+                /*if(dsc.statusLocation){
                     data.description = dsc.statusLocation;
                     var getParams = dsc.statusLocation.split("?");
                     if(getParams.length>1){
@@ -1370,13 +1390,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             data.executionId = params.executionId;
                         }
                     }
-                }
+                }*/
+				
                 //console.log(data);
                 p = new store.recordType(data); // create new record
                 store.add(p);
             }
+			
             me.resultPanel.getView().refresh();
-            me.startRunner();
+            //me.startRunner();
         });
          
     },
@@ -1384,7 +1406,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var rec = grid.getStore().getAt(rowIndex);
             var id = rec.get('id');
             
-            if(rec.get('executionStatus')=='Accepted'){
+            if(rec.get('executionStatus') == 'Accepted'){
                 
                 Ext.Msg.show({
                    title: this.msgRemRunningTitle,
@@ -1418,14 +1440,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     removeInstance: function(instanceID){
         var me = this;
         
-        me.wpsManager.deleteExecuteInstance(instanceID, function() {
+        me.wpsClusterManager.deleteExecuteInstance(instanceID, function() {
             me.getInstances(false);
         });
     },
     
     getInstance: function(instanceID){
         
-        this.wpsManager.getExecuteInstance(instanceID, false, function(instance){
+        this.wpsClusterManager.getExecuteInstance(instanceID, false, function(instance){
            
             var tpl = new Ext.XTemplate(
                 '<table class="gridtable">',
@@ -1439,16 +1461,16 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 '<td>{description}</td></tr>',
                 '<tr><th>'+this.msgCategory+'</th>',          
                 '<td>{category}</td></tr>',
-                '<tr><th>'+this.msgMetadata+'</th>',          
+                /*'<tr><th>'+this.msgMetadata+'</th>',          
                 '<td>{metadata}</td></tr>',
                 '<tr><th>'+this.msgAttributes+'</th>',        
                 '<td>{attributes}</td></tr>',
-                '<td>{store}</td></tr>',
+                '<td>{store}</td></tr>',*/
                 '</table>'
                 );
           
-            instance.Resource.store= Ext.encode(instance.Resource.data);
-            instance.Resource.category= Ext.encode(instance.Resource.category);
+            instance.Resource.store = Ext.encode(instance.Resource.data);
+            instance.Resource.category = Ext.encode(instance.Resource.category);
             Ext.Msg.show({
                 title: this.msgInstance + " " + instance.Resource.id,
                 msg: tpl.applyTemplate(instance.Resource),
@@ -1505,17 +1527,18 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         }
         
         // TODO: i nomi dei campi delle due richieste wps non coincidono, workaround temporaneo
-        /*if( r.get('executionStatus') == 'Failed'){
-            return;
-        }*/
-        
-        if(phase && phase != 'RUNNING'){
+		
+        if(execStatus == 'Failed' || execStatus == 'Succeeded'){
             return;
         }
         
+        /*if(phase && phase != 'RUNNING'){
+            return;
+        }*/
+        
         r.beginEdit();
         
-        var richiesta = {
+        var request = {
             type: "raw",
             inputs:{
                 executionId : new OpenLayers.WPSProcess.LiteralData({value:r.get('executionId')}),
@@ -1526,7 +1549,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }]
         };
 
-        this.wpsManager.execute('gs:ClusterManager', richiesta, function(response){
+        this.wpsClusterManager.execute('gs:ClusterManager', request, function(response){
             var element =  Ext.decode(response);
             
             if(!("list" in element)){
@@ -1554,8 +1577,26 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 r.set('progress', x[0].progress);
                 r.set('result', x[0].result);
             } 
-            
-        }, this)
+			
+			/*var status;
+			var exStatus = execStatus;
+			var phase = x[0].phase;
+			switch(phase){
+				case 'ACCEPTED': status = 'Process Accepted'; break;
+				case 'STARTED': status = 'Process Started'; break;
+				case 'COMPLETED': status = 'Process Succeeded'; break;
+				case 'RUNNING': status = 'Process Running'; break;
+				case 'FAILED': status = 'Process Failed'; break;
+				case 'CANCELLED': status = 'Process Cancelled'; break;
+				default:
+					break;
+			}
+			
+			if(exStatus != status){*/
+				this.wpsClusterManager._updateInstance(r);
+			/*}*/
+			
+        }, this);
         
         
         //console.log(r.get('phase') + " "+r.get('executionStatus'));
@@ -1593,6 +1634,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             this.formPanel.placeSearch.enable();
 			if(!isRaster){
 				this.formPanel.cutMode.enable();
+			}else{
+				this.formPanel.cutMode.disable();
 			}
         } else {
             this.formPanel.selectionMode.disable();
@@ -1630,7 +1673,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }]
         };
 
-        this.wpsManager.execute('JTS:buffer', request, function(response) {
+        this.wpsClusterManager.execute('JTS:buffer', request, function(response) {
             if(response) {
                 try {
                     var geometry = OpenLayers.Geometry.fromWKT(response);
