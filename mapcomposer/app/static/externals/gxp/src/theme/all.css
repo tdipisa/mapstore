@@ -26,6 +26,13 @@
     background-image: url(img/silk/shape_square.png) !important;
 }
 
+.execution-cls{
+	background-image: url(img/silk/application_put.png) !important;
+}
+
+.execution-cls-delete{
+	background-image: url(img/silk/delete.png) !important;
+}
 
 /* Pan- and Zoom- Panel Styles*/
 

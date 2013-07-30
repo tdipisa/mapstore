@@ -179,15 +179,21 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     tabTitle: "Download",
     
     dselTitle: "Data Selection",
+	
     dselLayer: "Layer",
+	
     dselCRS: "Target CRS",
+	
     dselFormat: "Format",
     
     settingTitle: "Spatial Settings",
+	
     settingSel: "Selection Mode",
+	
     settingCut: "Cut Mode",
     
     emailNotificationTitle: "Email notification",
+	
     emailFieldLabel: "Email",
 
     vectorFilterTitle: "Vector Filter",
@@ -195,75 +201,132 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     placeSearchLabel: "Place",
 
     resTitle: "Results",
+	
     resID: "ID",
+	
     resExecID: "execID",
+	
     resProcStatus: "Process Status",
+	
     resGet: "Get",
+	
     resDelete: "Delete",
+	
     resPhase: "Phase",
+	
     resProgress: "Progress",
+	
     resResult: "Result",
     
     btnRefreshTxt: "Refresh",
+	
     btnResetTxt: "Reset",
+	
     btnDownloadTxt: "Download",
     
     errMissParamsTitle: "Missing parameters" ,
+	
     errMissParamsMsg: "Please fill all the mandatory fields" ,
     
     errMissGeomTitle: "Missing feature" ,
+	
     errMissGeomMsg: "Please draw the Area of Interest before submitting" ,
 
     msgRemRunningTitle:"Remove Running Instance",
+	
     msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retreave the result<br/>Do you really want to delete instance ?",
+	
     msgRemTitle: "Remove Instance",
+	
     msgRemMsg: "Do you want to delete instance ?",
+	
     msgRemDone: "Instance removed.",
     
     errWPSTitle: "DownloadProcess not supported",
+	
     errWPSMsg: "This WPS server does not support gs:Download process",
+	
 	wpsErrorMsg: "The WPS reports the following error",
     
     errBufferTitle: "Buffer failed",
+	
     errBufferMsg: "Error buffering feature",
     
     errUnknownLayerTypeTitle: "Unknown layer type",
+	
     errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
     
     msgEmptyEmailTitle: "Empty email",
+	
     msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",
     
     msgEmptyFilterTitle: "Empty filter",
+	
     msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",
     
     msgTooltipPending: 'Pending',
+	
     msgTooltipSuccess: 'Success',
+	
     msgTooltipExecuting: 'Executing',
+	
     msgTooltipFailed: 'Failed',
+	
     msgTooltipAccepted: 'Accepted',
     
     msgGeostoreException: "Geostore Exception",
     
     msgBox: 'Box',
+	
     msgPolygon: 'Polygon',
+	
     msgCircle: 'Circle',
+	
     msgPlace: 'Place',
     
     msgIntersection: 'Intersection',
+	
     msgClip: 'Clip',
     
     msgInstance: 'Instance',
     
     msgName: 'Name',
+	
     msgCreation: 'Creation',
-    msgDescription: 'Description',       
-    msgCategory: 'Category',          
+	
+    msgDescription: 'Description',   
+    
+    msgCategory: 'Category', 
+	
     msgMetadata: 'Metadata',
+	
     msgAttributes: 'Attributes',
     
-    errUnexistingListMsg: "Lista non esistente",
-    
-    
+    errUnexistingListMsg: "Lista non esistente",    
+	
+	executionIdField: "Execution ID",
+	
+	executionIdFieldEmptyText: "Insert an execution ID",
+	
+	executionIdFieldTooltip: "Insert an execution ID to follow the process status",
+	
+	executionIdFieldTooltipDelete: "Delete the execution ID field",
+	
+	executionIdPresentErrorMsg: "The provided execution ID is already present inside the Grid",
+	
+	executionIdEmptyErrorMsg: "The server has returned an empty execution ID",
+	
+	executionIdInvalidErrorMsg: "Invalid execution Id !",
+	
+	processExecutions: "Process Executions",
+	
+	processResponseErrorTitle: "Process Response Error",
+	
+	processResponseErrorMsg: "The process did not properly respond",
+	
+	describeProcessErrorMsg: "Cannot read response",
+	
+	bufferFieldLabel: "Buffer (m)",
     
     /** private: method[constructor]
      */
@@ -306,7 +369,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				// Add Plugin controls Tools
 				// ///////////////////////////////////
 				this.spatialSelection = new OpenLayers.Layer.Vector("Spatial Selection",{
-					displayInLayerSwitcher: false,
+					displayInLayerSwitcher: false
 				});
 				
                 this.spatialSelection.events.register("beforefeatureadded", this, function(){
@@ -317,7 +380,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     
 					// //////////////////////////////////////////////////////
 					// reset the buffer field when the geometry has changed
-                    // the preventBufferReset is needed to avoid resetting it when the buffered feature is added
+                    // the preventBufferReset is needed to avoid resetting it 
+					// when the buffered feature is added
 					// //////////////////////////////////////////////////////
                     if(!this.spatialSelection._preventBufferReset) {
                         this.formPanel.bufferField.reset();
@@ -326,7 +390,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				});
                 this.spatialSelection.events.register("featureadded", this, function(){
 					// //////////////////////////////////////////////////////
-					// Check the form status: the buffer field shall be enabled here
+					// Check the form status: the buffer field shall be 
+					// enabled here
 					// //////////////////////////////////////////////////////
 					this.updateFormStatus();
 				});
@@ -336,7 +401,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					// //////////////////////////////////////////////////////
                     delete this.unBufferedFeature;
 					// //////////////////////////////////////////////////////
-					// Check the form status: the buffer field shall be disabled here
+					// Check the form status: the buffer field shall be 
+					// disabled here
 					// //////////////////////////////////////////////////////
                     this.updateFormStatus();
                 });
@@ -372,8 +438,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				    this.wpsClusterManager = new gxp.plugins.WPSClusterManager({
                         id: "DownloadPanelwpsClusterManager",
                         url: this.wpsUrl,
-                        proxy: this.target.proxy,//this.wpsProxy,
-                        geoStoreClient: new gxp.plugins.GeoStoreClient({
+                        proxy: this.target.proxy//,//this.wpsProxy,
+                        /*geoStoreClient: new gxp.plugins.GeoStoreClient({
                             url: this.geostoreUrl,
                             user: this.geostoreUser,
                             password: this.geostorePassword,
@@ -389,7 +455,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                 },
                                 scope: this
                             }
-                        })
+                        })*/
                     });
 				}
                 
@@ -585,7 +651,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							
 							var layerSource = this.target.layerSources[record.data.source];
 							var url = this.buildLayerWPSUrl(layerSource.url);
-                            url += "&version=" + this.wpsDefaultVersion+"&request=DescribeProcess&identifier=gs:Download";
+                            url += "&version=" + this.wpsDefaultVersion + "&request=DescribeProcess&identifier=gs:Download";
 							
                             var requestUrl = this.isSameOrigin(url) ? url : this.target.proxy + encodeURIComponent(url);
                             var Request = Ext.Ajax.request({
@@ -603,13 +669,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                                 icon: Ext.MessageBox.ERROR
                                             });
                                             this.formPanel.downloadButton.disable();
-                                        }else
-                                        {
+                                        }else{
                                             this.formPanel.downloadButton.enable();
                                         }
-                                    }else{
+                                    }else{		
                                         Ext.Msg.show({
-                                            title: 'Cannot read response',
+                                            title: this.describeProcessErrorMsg,
                                             msg: response.statusText + "(status " + response.status + "):  " + response.responseText,
                                             buttons: Ext.Msg.OK,
                                             icon: Ext.MessageBox.ERROR
@@ -628,9 +693,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							var layerSource = record.data.source;
 							//var isWCS = record.data.wcs;
 							
+							// ///////////////////////////////////////////
                             // check the layer type
-                            // async because it may need to check for describeFeatureType and describeCoverage
-                            this.getLayerType(record.data, function(layerType) {
+                            // async because it may need to check for 
+							// describeFeatureType and describeCoverage
+                            // ///////////////////////////////////////////
+							this.getLayerType(record.data, function(layerType) {
                                 if(!layerType) {
                                     this.formPanel.downloadButton.disable();
                                     this.formPanel.resetButton.disable();
@@ -777,7 +845,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				{
 					xtype: "numberfield",
 					ref: "../bufferField",
-					fieldLabel: "Buffer (m)",
+					fieldLabel: this.bufferFieldLabel,
 					width: 140,
                     enableKeyEvents: true,
                     disabled: true,
@@ -847,13 +915,21 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             title: this.vectorFilterTitle,
             checkboxToggle: true,
             collapsed: true,
-            hidden: true
+            hidden: true,
+			listeners: {
+				scope: this,
+				expand: function(panel){
+					if(Ext.isIE){
+						this.vectorFilterContainer.doLayout();
+					}
+				}
+			}
         });
 
         this.emailNotification = new Ext.form.FieldSet({
             title: this.emailNotificationTitle,
-            checkboxToggle: true,
-            collapsed: true,
+            //checkboxToggle: true,
+            //collapsed: false,
             ref: "emailNotification",
             items: [
                 /*{ // TODO Disabled due to unimplemented plug-in
@@ -873,7 +949,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 }
             ]
         });
-
 
         // set the cookie
         /*
@@ -898,31 +973,28 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
         var mydlp = this;
         this.resultPanel = new Ext.grid.GridPanel({
-            layout:'fit',
+            layout: 'fit',
             store: store,
             columns: [
                 {
                     id       : 'id',
                     header   : this.resID, 
                     width    : 30, 
-                    hidden : true, 
+                    hidden   : true, 
                     dataIndex: 'id'
-                },
-				{
+                }, {
                     id       : 'name',
                     header   : "Name", 
                     width    : 30, 
-                    hidden : true, 
+                    hidden   : true, 
                     dataIndex: 'name'
-                },
-                {
+                }, {
                     id       : 'executionId',
                     header   : this.resExecID, 
                     width    : 45, 
                     sortable : true, 
                     dataIndex: 'executionId'
-                },
-                {
+                }, {
                     id       : 'executionStatus',
                     header   : this.resProcStatus, 
                     width    : 63, 
@@ -935,102 +1007,99 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}
 						return val;
 					}
-                },
-                {
+                }, {
                     xtype: 'actioncolumn',
                     header: this.resGet, 
                     width: 36,
                     items: [{
-                            getClass: function(v, meta, rec) {
-                                var tooltip = '', icnClass='decline';
-								var execStatus = rec.get('executionStatus'); 
-                                switch (execStatus) {    
-                                    case 'Process Pending':
-                                    case 'Pending':
-                                        icnClass = 'decline';
-                                        tooltip = mydlp.msgTooltipPending;
-                                        break;
-									case 'Process Running':
-                                    case 'Running':
-                                        if(rec.get('phase')=='COMPLETED'){
-                                            icnClass = 'accept';
-                                            tooltip = 'Success';
-                                        }else if(rec.get('phase')=='FAILED'){
-                                            icnClass = 'decline';
-                                            tooltip = 'Failed';
-                                        }else{
-                                            icnClass = 'loading';
-                                            tooltip = 'Accepted';
-                                        }
-                                        break;
-                                    case 'Process Succeeded':
-                                    case 'Succeeded':
-                                        icnClass = 'accept';
-                                        tooltip = mydlp.msgTooltipSuccess;
-                                        break;
-                                    case 'Process Started':
-                                    case 'Started':
-                                        icnClass = 'accept';
-                                        tooltip = mydlp.msgTooltipExecuting;
-                                        break;
-                                    case 'Process Accepted':
-                                    case 'Accepted':
-                                        if(rec.get('phase')=='COMPLETED'){
-                                            icnClass = 'accept';
-                                            tooltip = mydlp.msgTooltipSuccess;
-                                        }else if(rec.get('phase')=='FAILED'){
-                                            icnClass = 'decline';
-                                            tooltip = mydlp.msgTooltipFailed;
-                                        }else{
-                                            icnClass = 'loading';
-                                            tooltip = mydlp.msgTooltipAccepted;
-                                        }
-                                        break;
-                                    default:
-                                        icnClass = 'decline';
-                                        tooltip = execStatus;
-                                        break;
-                                }
-                                this.items[0].tooltip = tooltip;
-                                return icnClass;
-                            },
-                            handler: function(grid, rowIndex, colIndex) {
-                                var rec = store.getAt(rowIndex);
-								var execStatus = rec.get('executionStatus'); 
-                                if(execStatus.indexOf('Succeeded')!= -1){
-                                    mydlp.getInstance(rec.get('id'));
-                                }
-                            }
+						getClass: function(v, meta, rec) {
+							var tooltip = '', icnClass='decline';
+							var execStatus = rec.get('executionStatus'); 
+							switch (execStatus) {    
+								case 'Process Pending':
+								case 'Pending':
+									icnClass = 'decline';
+									tooltip = mydlp.msgTooltipPending;
+									break;
+								case 'Process Running':
+								case 'Running':
+									if(rec.get('phase')=='COMPLETED'){
+										icnClass = 'accept';
+										tooltip = 'Success';
+									}else if(rec.get('phase')=='FAILED'){
+										icnClass = 'decline';
+										tooltip = 'Failed';
+									}else{
+										icnClass = 'loading';
+										tooltip = 'Accepted';
+									}
+									break;
+								case 'Process Succeeded':
+								case 'Succeeded':
+									icnClass = 'accept';
+									tooltip = mydlp.msgTooltipSuccess;
+									break;
+								case 'Process Started':
+								case 'Started':
+									icnClass = 'accept';
+									tooltip = mydlp.msgTooltipExecuting;
+									break;
+								case 'Process Accepted':
+								case 'Accepted':
+									if(rec.get('phase')=='COMPLETED'){
+										icnClass = 'accept';
+										tooltip = mydlp.msgTooltipSuccess;
+									}else if(rec.get('phase')=='FAILED'){
+										icnClass = 'decline';
+										tooltip = mydlp.msgTooltipFailed;
+									}else{
+										icnClass = 'loading';
+										tooltip = mydlp.msgTooltipAccepted;
+									}
+									break;
+								default:
+									icnClass = 'decline';
+									tooltip = execStatus;
+									break;
+							}
+							this.items[0].tooltip = tooltip;
+							return icnClass;
+						}/*,
+						handler: function(grid, rowIndex, colIndex) {
+							var rec = store.getAt(rowIndex);
+							var execStatus = rec.get('executionStatus'); 
+							if(execStatus.indexOf('Succeeded')!= -1){
+								mydlp.getInstance(rec.get('id'));
+							}
+						}*/
                     }]
-                },
-                {
+                }, {
                     xtype: 'actioncolumn',
                     header: this.resDelete, 
                     width: 57,
                     hidden: false,
+					scope: this,
                     items: [{
                         iconCls: 'reset',
                         tooltip: this.resDelete,
-                        handler: this.deleteHandler
-                        ,scope: this
+                        handler: this.deleteHandler,
+						scope: this
                     }]
-                    ,scope:this
-                },{
+                }, {
                     id       : 'phase',
                     header   : this.resPhase, 
                     width    : 60, 
                     sortable : true, 
                     hidden   : true,
                     dataIndex: 'phase'
-                },
-                {
+                }, {
                     id       : 'progress',
                     header   : this.resProgress, 
                     width    : 79, 
                     sortable : true, 
                     dataIndex: 'progress'
-                },/*
-                {
+                },
+                /*{
                     id       : 'result',
                     header   : 'RESULT', 
                     width    : 50, 
@@ -1038,6 +1107,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     dataIndex: 'result'
                 },*/{
                     //xtype: 'actioncolumn',
+					id       : 'result',
                     header: this.resResult, 
                     width: 53,
                     dataIndex: 'result',
@@ -1057,7 +1127,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							console.log(rec.get('result'));
 						}
                     }],*/
-                    renderer:function (val, obj, record) {
+                    renderer: function (val, obj, record) {
 						if(!val){
 							return;
 						}else{		
@@ -1074,11 +1144,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							}
 						}
 					}
-                },
+                }
             ],
             //stripeRows: true,
             //autoExpandColumn: 'description',
-            height: 205,
+            height: 170,
             //width: 600,
             title: this.resTitle,
             /*
@@ -1089,13 +1159,140 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             listeners:{
                 viewready:{
                     fn: function(){
-						this.getInstances(true);
+						//this.getInstances(true);
 						//this.startRunner();
 					},
                     scope: this
                 }
             },
             scope:this
+        });
+		
+		this.executionIdField = new Ext.form.CompositeField({		
+			width: 167,
+			items: [
+                {
+                    xtype: 'textfield',
+					ref: "idField",	
+					fieldLabel: this.executionIdField,
+                    emptyText: this.executionIdFieldEmptyText,
+                    flex: 1
+                }, {
+                    xtype: 'button',
+                    tooltip: this.executionIdFieldTooltip,
+                    iconCls: "execution-cls",
+                    width: 23,
+					scope: this,
+					handler: function(){
+						var execId = this.executionIdField.idField.getValue();
+						this.showMask();
+						this.invokeClusterManager(execId, this, function(response){
+							var element =  Ext.decode(response);
+							
+							if(!("list" in element)){
+								alert(this.errUnexistingListMsg);
+								return;
+							}
+							
+							var list = element.list;
+							var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+							
+							if((list instanceof Object) && (magicString in list)){
+								var x = list[magicString];
+			   
+								var responseObj = new Object();
+								if( x && (x.length > 0) ){
+									var name = x[0].processName;
+									responseObj.name = name.namespace + name.separator + name.local;
+									responseObj.executionId = x[0].executionId;							
+									
+									var status;
+									switch(x[0].phase){
+										case 'ACCEPTED': status = 'Process Accepted'; break;
+										case 'STARTED': status = 'Process Started'; break;
+										case 'COMPLETED': status = 'Process Succeeded'; break;
+										case 'RUNNING': status = 'Process Running'; break;
+										case 'FAILED': status = 'Process Failed'; break;
+										case 'CANCELLED': status = 'Process Cancelled'; break;
+									}
+				
+									responseObj.status = status;
+									responseObj.phase = x[0].phase;
+									responseObj.progress = x[0].progress;
+									responseObj.result = x[0].result;
+								} 
+								
+								if(responseObj.executionId){							
+									var data = {
+										name: responseObj.name || '',
+										executionId: responseObj.executionId || '',
+										executionStatus: responseObj.status || '',
+										description: responseObj.description || '',
+										phase: responseObj.phase || '',
+										progress: responseObj.progress || '',
+										result: responseObj.result || ''
+									};
+									
+									var store = this.resultPanel.getStore();
+									var record = new store.recordType(data); // create new record
+									
+									var recordIndex = store.find("executionId", data.executionId); 
+									
+									//
+									// The process record is added only if missing inside the Grid
+									//
+									if(recordIndex == -1){
+										store.add(record);
+												
+										var task2 = new Ext.util.DelayedTask(this.startRunner, this, [false]);
+										task2.delay(1500);	
+									}else{
+										Ext.Msg.show({
+											title: this.executionIdField,
+											msg: this.executionIdPresentErrorMsg,
+											buttons: Ext.Msg.OK,
+											icon: Ext.Msg.INFO
+										});
+									}	
+								}else{
+									Ext.Msg.show({
+										title: this.executionIdField,
+										msg: this.executionIdEmptyErrorMsg,
+										buttons: Ext.Msg.OK,
+										icon: Ext.Msg.INFO
+									});
+								}	
+							}else{
+								Ext.Msg.show({
+									title: this.executionIdField,
+									msg: this.executionIdInvalidErrorMsg,
+									buttons: Ext.Msg.OK,
+									icon: Ext.Msg.INFO
+								});
+							}	
+
+							this.hideMask();							
+						}); 
+					}
+                },{
+                    xtype: 'button',
+                    tooltip: this.executionIdFieldTooltipDelete,
+                    iconCls: "execution-cls-delete",
+                    width: 23,
+					scope: this,
+					handler: function(){
+						this.executionIdField.idField.reset();
+					}
+				}
+			]
+		});
+	    
+	    this.resultFieldSet = new Ext.form.FieldSet({
+            title: this.processExecutions,
+			items: [
+			    this.executionIdField,
+				this.resultPanel
+			]
         });
         
 		// /////////////////////////////////////
@@ -1109,9 +1306,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			items:[
 				this.laySel,
 				this.spatialSettings,
-				this.emailNotification,
                 this.vectorFilterContainer,
-				this.resultPanel
+				this.emailNotification,
+				this.resultFieldSet
 			],
 			buttons:[
 				'->',
@@ -1187,7 +1384,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         
                         //check the email notification field
                         // if it's checked but invalid, ask the user to confirm the operation without email notification
-                        if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
+                        //if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
                             if(!downloadForm.emailField.isValid()) {
                                 return Ext.Msg.show({
                                     title: this.msgEmptyEmailTitle,
@@ -1204,7 +1401,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                     icon: Ext.MessageBox.QUESTION
                                 });
                             }
-                        }
+                        //}
                         
                         // check the filter field
                         // if it's checked but invalid, ask the user to confirm the operation without the filter
@@ -1252,18 +1449,81 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     },
     
     /**
-     * private 
+     * private: method[executeCallback]
      */        
     executeCallback: function(instanceOrRawData){
-        var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
-        task.delay(1000);
+        //var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
+        //task.delay(1000);
+
+		var executeResponse = instanceOrRawData.executeResponse;
 		
-		var task2 = new Ext.util.DelayedTask(this.startRunner, this, [false]);
-        task2.delay(1500);
-		
-        //setTimeout("getInstances(false)", 1000);
+		if(executeResponse){
+			var data = {
+				name: '',
+				executionId: '',
+				executionStatus: '',
+				description: ''
+			};
+
+			//
+			// The process name 
+			//
+			data.name = executeResponse.process.identifier;
+			
+			//
+			// The process execution id
+			//
+			if(executeResponse.statusLocation){
+				var getParams = executeResponse.statusLocation.split("?");
+				if(getParams.length > 1){
+					var params = Ext.urlDecode(getParams[1]);
+					if(params.executionId){
+						data.executionId = params.executionId;
+					}
+				}
+			}
+			
+			//
+			// The process execution status
+			//
+			switch(executeResponse.status.name){
+				case 'Process Started':
+				case 'Process Running':
+				case 'Process Accepted':
+				case 'Process Paused':
+				case 'Process Failed':
+				case 'Process Succeeded':
+					data.executionStatus = executeResponse.status.name.replace('Process ', '');
+					break;
+				default:
+					data.executionStatus = executeResponse.status.name;
+					break;
+			}
+			
+			//
+			// The process description
+			//
+			data.description = executeResponse.process.abstract;
+
+			var store = this.resultPanel.getStore();
+			var record = new store.recordType(data); // create new record
+			store.add(record);
+					
+			var task2 = new Ext.util.DelayedTask(this.startRunner, this, [false]);
+			task2.delay(1500);
+		}else{
+			Ext.Msg.show({
+			   title: this.processResponseErrorTitle,
+			   msg: this.processResponseErrorMsg,
+			   buttons: Ext.Msg.OK,
+			   icon: Ext.MessageBox.WARNING
+			});
+		}		
     },
-    
+ 
+	/**
+     * private: method[getAsyncRequest]
+     */
     getAsyncRequest: function(dform){
     
         // default true
@@ -1337,6 +1597,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         return request;
     },    
     
+	/**
+     * private: method[getInstances]
+     */
     getInstances: function(update){        
         // TODO getExecuteInstances deve essere slegato da geostore
         var me = this;
@@ -1403,37 +1666,39 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
          
     },
     deleteHandler: function(grid, rowIndex, colIndex) {
-            var rec = grid.getStore().getAt(rowIndex);
-            var id = rec.get('id');
+			var store = grid.getStore();
+            var rec = store.getAt(rowIndex);
+            //var id = rec.get('id');
             
-            if(rec.get('executionStatus') == 'Accepted'){
-                
+			var phase = rec.get('phase');
+            if(!phase || phase == 'RUNNING'){                
                 Ext.Msg.show({
                    title: this.msgRemRunningTitle,
                    msg: this.msgRemRunningMsg,
                    buttons: Ext.Msg.OKCANCEL,
                    fn: function(btn){
-                        if(btn == 'ok') 
-                            this.removeInstance(id);
+                        if(btn == 'ok'){
+							store.remove(rec);
+						} 
                     },
                    icon: Ext.MessageBox.WARNING,
                    scope: this
-                });
-                
-            }else{
-                
+                });                
+            }else{                
                 Ext.Msg.show({
                    title: this.msgRemTitle,
                    msg: this.msgRemMsg,
                    buttons: Ext.Msg.OKCANCEL,
                    fn: function(btn){
-                        if(btn == 'ok') 
-                            this.removeInstance(id);
+                        if(btn == 'ok'){
+							store.remove(rec);
+						} 
                     },
                    icon: Ext.MessageBox.QUESTION,
                    scope: this
                 });
             }
+			
             return false;
     },
                     
@@ -1538,18 +1803,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
         r.beginEdit();
         
-        var request = {
-            type: "raw",
-            inputs:{
-                executionId : new OpenLayers.WPSProcess.LiteralData({value:r.get('executionId')}),
-            },
-            outputs: [{
-                identifier: "result",
-                mimeType: "application/json"
-            }]
-        };
-
-        this.wpsClusterManager.execute('gs:ClusterManager', request, function(response){
+		this.invokeClusterManager(r.get('executionId'), this, function(response){
             var element =  Ext.decode(response);
             
             if(!("list" in element)){
@@ -1593,11 +1847,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			}
 			
 			if(exStatus != status){*/
-				this.wpsClusterManager._updateInstance(r);
+				//this.wpsClusterManager._updateInstance(r);
 			/*}*/
 			
-        }, this);
-        
+        });        
         
         //console.log(r.get('phase') + " "+r.get('executionStatus'));
         // store pending task
@@ -1609,6 +1862,21 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
         r.endEdit();
     },
+	
+	invokeClusterManager: function(executionId, scope, callback){
+	    var request = {
+            type: "raw",
+            inputs: {
+                executionId : new OpenLayers.WPSProcess.LiteralData({value: executionId})
+            },
+            outputs: [{
+                identifier: "result",
+                mimeType: "application/json"
+            }]
+        };
+
+        this.wpsClusterManager.execute('gs:ClusterManager', request, callback, scope);
+	},
     
     updateFormStatus: function() {
         //enable buffer only if layer, crs and selection mode have a value

@@ -553,21 +553,18 @@ GeoExt.Lang.add("it", {
 	},
     
     "gxp.plugins.DownloadPanel.prototype":{
-        tabTitle: "Download",
-    
+	    initialText: "Seleziona elemento ...",
+        tabTitle: "Download",    
         dselTitle: "Selezione Dati",
         dselLayer: "Layer",
         dselCRS: "CRS di output",
-        dselFormat: "Formato",
-        
+        dselFormat: "Formato",        
         settingTitle: "Impostazioni spaziali",
         settingSel: "Modalità di Selezione",
-        settingCut: "Modalità di Ritaglio",
-        
+        settingCut: "Modalità di Ritaglio",        
         optTitle: "Impostazioni opzionali",
         optEmail: "Filtro",
-        optEmail: "Email",
-    
+        optEmail: "Email",    
         resTitle: "Risultati",
         resID: "ID",
         resExecID: "execID",
@@ -576,73 +573,66 @@ GeoExt.Lang.add("it", {
         resDelete: "Cancella",
         resPhase: "Fase",
         resProgress: "Avanzamento",
-        resResult: "Risultato",
-        
+        resResult: "Risultato",        
         btnRefreshTxt: "Ricarica",
         btnResetTxt: "Pulisci",
-        btnDownloadTxt: "Scarica",
-        
+        btnDownloadTxt: "Scarica",        
         errMissParamsTitle: "Parametri mancanti" ,
-        errMissParamsMsg: "Compila tutti i campi obbligatori" ,
-        
+        errMissParamsMsg: "Compila tutti i campi obbligatori" ,        
         errMissGeomTitle: "Geometrie mancanti" ,
-        errMissGeomMsg: "Disegna una geometria prima di inviare la richiesta" ,
-    
+        errMissGeomMsg: "Disegna una geometria prima di inviare la richiesta" ,    
         msgRemRunningTitle:"Rimuovi istanza in corso",
         msgRemRunningMsg:  "Stai per cancellare una istanza in corso, non sarai in grado di recuperare il risultato<br/>Vuoi continuare ?",
         msgRemTitle: "Rimuovi istanza",
         msgRemMsg: "Vuoi rimuovere l\'istanza ?",
-        msgRemDone: "Istanza rimossa.",
-        
+        msgRemDone: "Istanza rimossa.",        
         errWPSTitle: "DownloadProcess non supportato",
         errWPSMsg: "Questo server WPS non supporta il processo gs:Download",
-		wpsErrorMsg: "Il WPS riporta il seguente errore",
-        
+		wpsErrorMsg: "Il WPS riporta il seguente errore",        
         emailNotificationTitle: "Notifica via email",
         emailFieldLabel: "Email",
-
-        vectorFilterTitle: "Filtro",
-        
-        placeSearchLabel: "Località",
-        
+        vectorFilterTitle: "Filtro",        
+        placeSearchLabel: "Località",        
         errBufferTitle: "Buffer fallito",
-        errBufferMsg: "Errore nel buffering della geometria",
-        
+        errBufferMsg: "Errore nel buffering della geometria",        
         errUnknownLayerTypeTitle: "Tipo layer sconosciuto",
-        errUnknownLayerTypeMsg: "Impossibile stabilire il tipo di layer. Selezionare un altro layer",
-        
+        errUnknownLayerTypeMsg: "Impossibile stabilire il tipo di layer. Selezionare un altro layer",        
         msgEmptyEmailTitle: "Campo email vuoto",
-        msgEmptyEmailMsg: "La notifica via email è abilitata, ma il campo è vuoto. Continuare senza la notifica?",
-        
+        msgEmptyEmailMsg: "La notifica via email è abilitata, ma il campo è vuoto. Continuare senza la notifica?",        
         msgEmptyFilterTitle: "Campo filtro vuoto",
-        msgEmptyFilterMsg: "Il filtro è abilitato, ma non è stato specificato alcun filtro. Continuare senza filtro?",
-    
-        msgTooltipPending: 'In attesa',
-        msgTooltipSuccess: 'Completa',
-        msgTooltipExecuting: 'In esecuzione',
-        msgTooltipFailed: 'Fallita',
-        msgTooltipAccepted: 'Accettata',
-        
-        msgGeostoreException: "Eccezione Geostore",
-        
-        msgBox: 'Box',
-        msgPolygon: 'Poligono',
-        msgCircle: 'Cerchio',
-        msgPlace: 'Località',
-        
-        msgIntersection: 'Intersezione',
-        msgClip: 'Taglio',
-        
-        msgInstance: 'Istanza',
-        
-        msgName: 'Nome',
-        msgCreation: 'Creazione',
-        msgDescription: 'Descrizione',       
-        msgCategory: 'Categoria',          
-        msgMetadata: 'Metadata',
-        msgAttributes: 'Attributi',
-        
-        errUnexistingListMsg: "Lista non esistente"
+        msgEmptyFilterMsg: "Il filtro è abilitato, ma non è stato specificato alcun filtro. Continuare senza filtro?",    
+        msgTooltipPending: "In attesa",
+        msgTooltipSuccess: "Completa",
+        msgTooltipExecuting: "In esecuzione",
+        msgTooltipFailed: "Fallita",
+        msgTooltipAccepted: "Accettata",        
+        msgGeostoreException: "Eccezione Geostore",        
+        msgBox: "Box",
+        msgPolygon: "Poligono",
+        msgCircle: "Cerchio",
+        msgPlace: "Località",        
+        msgIntersection: "Intersezione",
+        msgClip: "Taglio",        
+        msgInstance: "Istanza",        
+        msgName: "Nome",
+        msgCreation: "Creazione",
+        msgDescription: "Descrizione",       
+        msgCategory: "Categoria",          
+        msgMetadata: "Metadata",
+        msgAttributes: "Attributi",        
+        errUnexistingListMsg: "Lista non esistente",
+		executionIdField: "ID Esecuzione",	
+		executionIdFieldEmptyText: "Inserire un ID esecuzione",	
+		executionIdFieldTooltip: "Inserire un ID di esecuzione per seguire lo stato del processo nella Griglia",
+		executionIdFieldTooltipDelete: "Cancella il campo relativo all'execution ID",		
+		executionIdPresentErrorMsg: "L'Id esecuzione specificato è già presente nella Griglia",	
+		executionIdEmptyErrorMsg: "Il server ha ritornato un ID esecuzione vuoto",	
+		executionIdInvalidErrorMsg: "ID esecuzione non valido!",	
+		processExecutions: "Esecuzione Processi",	
+		processResponseErrorTitle: "Errore nella Risposta del Processo",	
+		processResponseErrorMsg: "Il Processo non risponde correttamente",	
+		describeProcessErrorMsg: "Non si può leggere la risposta del server",	
+		bufferFieldLabel: "Buffer (m)"
     }
 	
 });

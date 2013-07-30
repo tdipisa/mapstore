@@ -558,23 +558,19 @@ GeoExt.Lang.add("de", {
 		layerNameLabel: "Layername"
 	},
 
-    "gxp.plugins.DownloadPanel.prototype":{
-         
-        tabTitle: "Downloaden",
-    
+    "gxp.plugins.DownloadPanel.prototype":{    
+        initialText: "Wählen Sie ein Element ...",	
+        tabTitle: "Downloaden",    
         dselTitle: "Daten auswahl",
         dselLayer: "Layer",
         dselCRS: "Target CRS",
-        dselFormat: "Format",
-       
+        dselFormat: "Format",       
         settingTitle: "Spatial Einstellungen",
         settingSel: "Auswahl-Modus",
-        settingCut: "Cut Mode",
-       
+        settingCut: "Cut Mode",       
         optTitle: "Optionale Einstellungen",
         optEmail: "Filter",
-        optEmail: "E-Mail",
-   
+        optEmail: "E-Mail",   
         resTitle: "Ergebnisse",
         resID: "ID",
         resExecID: "execID",
@@ -583,26 +579,66 @@ GeoExt.Lang.add("de", {
         resDelete: "Löschen",
         resPhase: "Phase",
         resProgress: "Progress",
-        resResult: "Ergebnis",
-       
+        resResult: "Ergebnis",       
         btnRefreshTxt: "Erfrischen",
         btnResetTxt: "Zurücksetzen",
-        btnDownloadTxt: "Downloaden",
-       
+        btnDownloadTxt: "Downloaden",       
         errMissParamsTitle: "Fehlende Parameter",
-        errMissParamsMsg: "Bitte füllen Sie alle Pflichtfelder",
-       
+        errMissParamsMsg: "Bitte füllen Sie alle Pflichtfelder",       
         errMissGeomTitle: "Fehlende Funktion",
-        errMissGeomMsg: "Bitte zeichnen Sie die Area of ​​Interest vor Einreichung",
-   
+        errMissGeomMsg: "Bitte zeichnen Sie die Area of ​​Interest vor Einreichung",   
         msgRemRunningTitle: "Entfernen laufende Instanz",
         msgRemRunningMsg: "Sie sind dabei, eine laufende Instanz löschen, werden Sie nicht in der Lage sein, um das Ergebnis<br/>Möchten Sie wirklich wollen, um beispielsweise retreave löschen",
         msgRemTitle: "Remove Instance",
         msgRemMsg: "Wollen Sie etwa zu löschen",
-        msgRemDone: "Instanz entfernt.",
-       
+        msgRemDone: "Instanz entfernt.",       
         errWPSTitle: "DownloadProcess nicht unterstützt",
         errWPSMsg: "Das WPS-Server nicht unterstützt gs: Download-Prozess",
-		wpsErrorMsg: "Die WPS berichtet die folgende Fehlermeldung"         
+		wpsErrorMsg: "Die WPS berichtet die folgende Fehlermeldung",
+		emailNotificationTitle: "Email-Benachrichtigung",
+        emailFieldLabel: "Email",
+        vectorFilterTitle: "Filtern",        
+        placeSearchLabel: "Stelle",        
+        errBufferTitle: "Buffer gescheitert",
+        errBufferMsg: "Fehler beim Zwischenspeichern Geometrie",        
+        errUnknownLayerTypeTitle: "Schicht-Typ unbekannt",
+        errUnknownLayerTypeMsg: "Unfähig, die Art der Schicht zu bestimmen. Wählen Sie eine andere Schicht",        
+        msgEmptyEmailTitle: "Feld leere E-Mail",
+        msgEmptyEmailMsg: "Die E-Mail-Benachrichtigung aktiviert ist, aber das Feld ist leer. Weiter ohne Benachrichtigung?",        
+        msgEmptyFilterTitle: "Filter Feld leer",
+        msgEmptyFilterMsg: "Der Filter ist aktiviert, aber es gibt keine Internet-Filter. Weiter ohne Filter?",    
+        msgTooltipPending: "Ausstehend",
+        msgTooltipSuccess: "Vervollständigen",
+        msgTooltipExecuting: "Laufen",
+        msgTooltipFailed: "Gescheiterte",
+        msgTooltipAccepted: "Akzeptiert",        
+        msgGeostoreException: "Exception GeoStore",        
+        msgBox: "Box",
+        msgPolygon: "Polygon",
+        msgCircle: "Rund",
+        msgPlace: "Stelle",        
+        msgIntersection: "Schnittpunkt",
+        msgClip: "Schneiden",        
+        msgInstance: "Beispiel",        
+        msgName: "Name",
+        msgCreation: "Schöpfung",
+        msgDescription: "Beschreibung",       
+        msgCategory: "Kategorie",          
+        msgMetadata: "Metadaten",
+        msgAttributes: "Attribute",        
+        errUnexistingListMsg: "Liste existiert nicht",
+		executionIdField: "Execution ID",	
+		executionIdFieldEmptyText: "Geben Sie eine ID Ausführung",	
+		executionIdFieldTooltip: "Geben Sie eine ID der Ausführung, um den Prozess-Status in der Grid folgen",	
+		executionIdFieldTooltipDelete: "Löschen Sie die Ausführung ID-Feld",
+		executionIdPresentErrorMsg: "Die Ausführung Id angegeben ist bereits in der Grid",	
+		executionIdEmptyErrorMsg: "Der Server lieferte eine Leerfahrt ID",	
+		executionIdInvalidErrorMsg: "Run ID ist nicht gültig!",	
+		processExecutions: "Execution Prozesse",	
+		processResponseErrorTitle: "Fehler in der Response-Verfahren",	
+		processResponseErrorMsg: "Der Prozess wird nicht richtig reagiert",	
+		describeProcessErrorMsg: "Sie können nicht lesen die Antwort des Servers",	
+		bufferFieldLabel: "Buffer (m)"
+		
     }
 });

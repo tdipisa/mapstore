@@ -49,7 +49,7 @@ Ext.namespace("gxp.plugins");
  *  TODO
  *
  */
-gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
+gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
     
     /** api: ptype = gxp_wpsmanager */
     ptype: "gxp_wpsclustermanager",
@@ -94,46 +94,51 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
         
         OpenLayers.ProxyHost = (this.proxy) ? this.proxy : this.target.proxy;
         
-        if(! this.geoStoreClient){
-            this.geoStoreClient = new gxp.plugins.GeoStoreClient({
-                url: (this.geostoreUrl) ? this.geostoreUrl : this.target.geoStoreBaseURL,
-                user: (this.geostoreUser) ? this.geostoreUser : this.target.geostoreUser,
-                password: (this.geostorePassword) ? this.geostorePassword : this.target.geostorePassword,
-                proxy: (this.geostoreProxy) ? this.geostoreProxy:this.target.proxy,
-                listeners: {
-                    "geostorefailure": function(tool, msg){
-						if(!silentErrors){	
-							Ext.Msg.show({
-								title: "Geostore Exception",
-								msg: msg,
-								buttons: Ext.Msg.OK,
-								icon: Ext.Msg.ERROR
-							});
+		//
+		// GeoStore is used in order to store process status only if specified in configuration
+		//
+        if(this.geoStoreClient){		
+			if(!(this.geoStoreClient instanceof gxp.plugins.GeoStoreClient)){
+				this.geoStoreClient = new gxp.plugins.GeoStoreClient({
+					url: (this.geostoreUrl) ? this.geostoreUrl : this.target.geoStoreBaseURL,
+					user: (this.geostoreUser) ? this.geostoreUser : this.target.geostoreUser,
+					password: (this.geostorePassword) ? this.geostorePassword : this.target.geostorePassword,
+					proxy: (this.geostoreProxy) ? this.geostoreProxy:this.target.proxy,
+					listeners: {
+						"geostorefailure": function(tool, msg){
+							if(!silentErrors){	
+								Ext.Msg.show({
+									title: "Geostore Exception",
+									msg: msg,
+									buttons: Ext.Msg.OK,
+									icon: Ext.Msg.ERROR
+								});
+							}
 						}
-                    }
-                }
-            }); 
+					}
+				}); 
+			}
+			
+		    var geoStore = this.geoStoreClient;       
+      
+			var wpsCategory = {
+				type: "category", 
+				name: this.id
+			};        
+		  
+			geoStore.existsEntity(
+				wpsCategory,
+				function(exists){
+					if(! exists){
+						geoStore.createEntity(wpsCategory, function(categoryID){
+							if( !categoryID){
+								geoStore.fireEvent("geostorefailure", this, "Geostore: create WPS category error");
+							}   
+						});
+					} 
+				}
+			);
 		}
-		
-        var geoStore = this.geoStoreClient;       
-      
-        var wpsCategory = {
-            type: "category", 
-            name: this.id
-        };        
-      
-        geoStore.existsEntity(
-			wpsCategory,
-            function(exists){
-                if(! exists){
-                    geoStore.createEntity(wpsCategory, function(categoryID){
-                        if( !categoryID){
-                            geoStore.fireEvent("geostorefailure", this, "Geostore: create WPS category error");
-                        }   
-                    });
-                } 
-            }
-		);
     },
     
     init: function(target){
@@ -328,7 +333,7 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
 		var request = {
             type: "raw",
             inputs:{
-                executionId : new OpenLayers.WPSProcess.LiteralData({value: executionId}),
+                executionId : new OpenLayers.WPSProcess.LiteralData({value: executionId})
             },
             outputs: [{
                 identifier: "result",
@@ -370,7 +375,6 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
     getPrefixInstanceName: function(processName){
         return this.instancePrefix+"_"+this.id+"_"+processName;
     },
-    
     
     /** private: method[getInstanceName]
      */
@@ -433,8 +437,12 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
 		executeOptions.scope = this;
 		
 		executeOptions.success = function(response, processInstance){
-			if(processName == 'gs:Download') 
+			//
+			// Only if the GeoStore Client is defined the resource should be created/updated
+			//
+			if(me.geoStoreClient && processName == 'gs:Download') 
 				me.responseManager(response, processInstance);
+				
 			callback.call(scope, response);
 		};
 	   
@@ -444,6 +452,11 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
 		return instanceName;
 	},
 	
+	/**
+	* api: method[_updateInstance]
+	*
+	* Method to update an existing process resource directly without callback
+	*/
 	_updateInstance: function(record){			
 		var responseObj = {
 			phase: record.data.phase,
@@ -484,7 +497,8 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.WPSManager,{
 		}); 
 	},
        
-    /** private: method[responseManager]
+    /** 
+	 * private: method[responseManager]
      */
     responseManager: function(executeProcessResponse, processInstance, 
         callback, instancesStatusUpdated, instanceIndex) {

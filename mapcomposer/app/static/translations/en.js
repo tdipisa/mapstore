@@ -520,21 +520,18 @@ GeoExt.Lang.add("en", {
     },
     
     "gxp.plugins.DownloadPanel.prototype":{
-        tabTitle: "Download",
-    
+	    initialText: "Select an item ...",
+        tabTitle: "Download",    
         dselTitle: "Data Selection",
         dselLayer: "Layer",
         dselCRS: "Target CRS",
-        dselFormat: "Format",
-        
+        dselFormat: "Format",        
         settingTitle: "Spatial Settings",
         settingSel: "Selection Mode",
-        settingCut: "Cut Mode",
-        
+        settingCut: "Cut Mode",        
         optTitle: "Optional Settings",
         optEmail: "Filter",
-        optEmail: "Email",
-    
+        optEmail: "Email",    
         resTitle: "Results",
         resID: "ID",
         resExecID: "execID",
@@ -543,65 +540,61 @@ GeoExt.Lang.add("en", {
         resDelete: "Delete",
         resPhase: "Phase",
         resProgress: "Progress",
-        resResult: "Result",
-        
+        resResult: "Result",        
         btnRefreshTxt: "Refresh",
         btnResetTxt: "Reset",
-        btnDownloadTxt: "Download",
-        
+        btnDownloadTxt: "Download",        
         errMissParamsTitle: "Missing parameters" ,
-        errMissParamsMsg: "Please fill all the mandatory fields" ,
-        
+        errMissParamsMsg: "Please fill all the mandatory fields" ,        
         errMissGeomTitle: "Missing feature" ,
-        errMissGeomMsg: "Please draw the Area of Interest before submitting" ,
-    
+        errMissGeomMsg: "Please draw the Area of Interest before submitting" ,    
         msgRemRunningTitle:"Remove Running Instance",
         msgRemRunningMsg:  "You are about to delete a running instance, you will not be able to retrieve the result<br/>Do you really want to delete instance ?",
         msgRemTitle: "Remove Instance",
         msgRemMsg: "Do you want to delete instance ?",
-        msgRemDone: "Instance removed.",
-        
+        msgRemDone: "Instance removed.",        
         errWPSTitle: "DownloadProcess not supported",
         errWPSMsg: "This WPS server does not support gs:Download process",
-		wpsErrorMsg: "The WPS reports the following error",
-    
+		wpsErrorMsg: "The WPS reports the following error",    
         errBufferTitle: "Buffer failed",
-        errBufferMsg: "Error buffering feature",
-        
+        errBufferMsg: "Error buffering feature",        
         errUnknownLayerTypeTitle: "Unknown layer type",
-        errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
-        
+        errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",        
         msgEmptyEmailTitle: "Empty email",
-        msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",
-        
+        msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",        
         msgEmptyFilterTitle: "Empty filter",
-        msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",
-        
-        msgTooltipPending: 'Pending',
-        msgTooltipSuccess: 'Success',
-        msgTooltipExecuting: 'Executing',
-        msgTooltipFailed: 'Failed',
-        msgTooltipAccepted: 'Accepted',
-        
-        msgGeostoreException: "Geostore Exception",
-        
-        msgBox: 'Box',
-        msgPolygon: 'Polygon',
-        msgCircle: 'Circle',
-        msgPlace: 'Place',
-        
-        msgIntersection: 'Intersection',
-        msgClip: 'Clip',
-        
-        msgInstance: 'Instance',
-        
-        msgName: 'Name',
-        msgCreation: 'Creation',
-        msgDescription: 'Description',       
-        msgCategory: 'Category',          
-        msgMetadata: 'Metadata',
-        msgAttributes: 'Attributes',
-        
-        errUnexistingListMsg: "Unexisting list"
+        msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",        
+        msgTooltipPending: "Pending",
+        msgTooltipSuccess: "Success",
+        msgTooltipExecuting: "Executing",
+        msgTooltipFailed: "Failed",
+        msgTooltipAccepted: "Accepted",        
+        msgGeostoreException: "Geostore Exception",        
+        msgBox: "Box",
+        msgPolygon: "Polygon",
+        msgCircle: "Circle",
+        msgPlace: "Place",        
+        msgIntersection: "Intersection",
+        msgClip: "Clip",        
+        msgInstance: "Instance",        
+        msgName: "Name",
+        msgCreation: "Creation",
+        msgDescription: "Description",       
+        msgCategory: "Category",          
+        msgMetadata: "Metadata",
+        msgAttributes: "Attributes",        
+        errUnexistingListMsg: "Unexisting list",		
+		executionIdField: "Execution ID",	
+		executionIdFieldEmptyText: "Insert an execution ID",	
+		executionIdFieldTooltip: "Insert an execution ID to follow the process status",	
+		executionIdFieldTooltipDelete: "Delete the execution ID field",
+		executionIdPresentErrorMsg: "The provided execution ID is already present inside the Grid",	
+		executionIdEmptyErrorMsg: "The server has returned an empty execution ID",	
+		executionIdInvalidErrorMsg: "Invalid execution Id !",	
+		processExecutions: "Process Executions",	
+		processResponseErrorTitle: "Process Response Error",	
+		processResponseErrorMsg: "The process did not properly respond",	
+		describeProcessErrorMsg: "Cannot read response",	
+		bufferFieldLabel: "Buffer (m)"
     }
 });
