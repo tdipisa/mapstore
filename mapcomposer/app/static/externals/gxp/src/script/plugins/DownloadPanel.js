@@ -736,7 +736,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                 
                                 this.formPanel.downloadButton.enable();
                                 this.formPanel.resetButton.enable();
-                                this.formPanel.refreshButton.enable();
+                                this.formPanel.resultPanel.refreshButton.enable();
                             };
                             
 							// ///////////////////////////////////////////
@@ -749,7 +749,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                     if(!layerType) {
                                         this.formPanel.downloadButton.disable();
                                         this.formPanel.resetButton.disable();
-                                        this.formPanel.refreshButton.disable();
+                                        this.formPanel.resultPanel.refreshButton.disable();
                                         return Ext.Msg.show({
                                             title: this.errUnknownLayerTypeTitle,
                                             msg: this.errUnknownLayerTypeMsg,
@@ -980,8 +980,34 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
         var mydlp = this;
         this.resultPanel = new Ext.grid.GridPanel({
+			ref: '../resultPanel',
             layout: 'fit',
             store: store,
+			bbar: {
+				xtype: 'toolbar',
+				items: [
+					'->',
+					{
+						//text: this.btnRefreshTxt,
+						tooltip: this.btnRefreshTxt,
+						ref: '../refreshButton',
+						cls: 'x-btn-text-icon',
+						icon :'theme/app/img/silk/arrow_refresh.png',
+						scope: this,
+						handler: function(){                           
+							// reset pending
+							this.pendingRows = 0;
+			
+							store.each(this.updateRecord, this);
+			
+							// Stop if nothing left pending
+							if(this.pendingRows <= 0){
+								return false;
+							}
+						}
+					}
+				]
+			},
             columns: [
                 {
                     id       : 'id',
@@ -1275,6 +1301,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					buttons:[
 						{
 							text: this.btnResetTxt,
+							tooltip: this.btnResetTxt,
 							ref: '../../resetButton',
 							cls: 'x-btn-text-icon',
 							icon :'theme/app/img/silk/application_form_delete.png',
@@ -1293,13 +1320,103 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								// ///////////////////
 								this.resetForm();
 							}
+						}, {
+							text: this.btnDownloadTxt,
+							tooltip: this.btnDownloadTxt,
+							type: 'submit',
+							ref: '../../downloadButton',
+							cls: 'x-btn-text-icon',
+							icon :'theme/app/img/download.png',
+							handler: function(){
+								var layerCombo = downloadForm.layerCombo.isValid();
+								var crsCombo = downloadForm.crsCombo.isValid();
+								var formatCombo = downloadForm.formatCombo.isValid();
+								var selectionMode = downloadForm.selectionMode.isValid();
+								var bufferField = downloadForm.bufferField.isValid();
+								var cutMode = downloadForm.cutMode.isValid();									
+								var isValid = layerCombo && crsCombo && formatCombo && 
+									selectionMode  && cutMode && bufferField;
+								
+								if(!isValid){
+									Ext.Msg.show({
+										title: this.errMissParamsTitle,
+										msg: this.errMissParamsMsg,
+										buttons: Ext.Msg.OK,
+										icon: Ext.Msg.INFO
+									});
+									return;
+								}
+								
+								var requestFunction = function() {
+									var asreq = this.getAsyncRequest(downloadForm);
+									this.wpsClusterManager.execute('gs:Download', asreq, this.executeCallback, this);
+									
+									// //////////////////////////////////////////////////
+									// Scrilling to the bottom of the panel to show the 
+									// status progres in the Grid
+									// //////////////////////////////////////////////////
+									downloadForm.body.dom.scrollTop = 200;
+								};
+								
+								//check the email notification field
+								if(!downloadForm.emailField.isValid()) {
+									return Ext.Msg.show({
+										title: this.msgEmptyEmailTitle,
+										msg: this.msgEmptyEmailMsg,
+										buttons: Ext.Msg.YESNOCANCEL,
+										fn: function(btnValue) {
+											if(btnValue == 'yes') {
+												requestFunction.call(this);
+											}
+											return;
+										},
+										scope: this,
+										animEl: 'elId',
+										icon: Ext.MessageBox.QUESTION
+									});
+								}
+								
+								// check the filter field
+								// if it's checked but invalid, ask the user to confirm the operation without the filter
+								if(this.vectorFilterContainer.checkbox.getAttribute('checked')) {
+									if(!downloadForm.filterBuilder.getFilter()) {
+										return Ext.Msg.show({
+											title: this.msgEmptyFilterTitle,
+											msg: this.msgEmptyFilterMsg,
+											buttons: Ext.Msg.YESNOCANCEL,
+											fn: function(btnValue) {
+												if(btnValue == 'yes') {
+													requestFunction.call(this);
+												}
+												return;
+											},
+											scope: this,
+											animEl: 'elId',
+											icon: Ext.MessageBox.QUESTION
+										});
+									}
+								}
+								
+								if(this.spatialSelection.features.length){
+									requestFunction.call(this);
+								}else{
+									Ext.Msg.show({
+										title: this.errMissGeomTitle ,
+										msg: this.errMissGeomMsg,
+										buttons: Ext.Msg.OK,
+										icon: Ext.Msg.INFO
+									});
+									return;						
+								}
+							},
+							scope:this
 						}
 					]
 				},
 				this.resultFieldSet
 			],
 			buttons:[
-				'->',
+				/*'->',
 				{
 					text: this.btnRefreshTxt,
                     ref: '../refreshButton',
@@ -1318,7 +1435,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         }
                     }
 				},
-                /*{
+                {
                     text: this.btnResetTxt,
                     ref: '../resetButton',
                     cls: 'x-btn-text-icon',
@@ -1339,7 +1456,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         this.resetForm();
                     }
                 },*/
-				{
+				/*{
 					text: this.btnDownloadTxt,
 					type: 'submit',
 					ref: '../downloadButton',
@@ -1428,7 +1545,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}
 					},
 					scope:this
-				}
+				}*/
 			]
 		});
 		
@@ -1574,8 +1691,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 mimeType: "application/zip"
             }]
         };
-
-        var filter = dform.filterBuilder.getFilter();
+		
+		var filter;
+		if(dform.filterBuilder){
+			filter = dform.filterBuilder.getFilter();
+		}
+        
         var email = dform.emailField.getValue();
         
         if(filter && this.vectorFilterContainer.checkbox.getAttribute('checked')) {

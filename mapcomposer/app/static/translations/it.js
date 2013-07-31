@@ -576,7 +576,7 @@ GeoExt.Lang.add("it", {
         resResult: "Risultato",        
         btnRefreshTxt: "Ricarica",
         btnResetTxt: "Pulisci",
-        btnDownloadTxt: "Scarica",        
+        btnDownloadTxt: "Avvia",        
         errMissParamsTitle: "Parametri mancanti" ,
         errMissParamsMsg: "Compila tutti i campi obbligatori" ,        
         errMissGeomTitle: "Geometrie mancanti" ,
