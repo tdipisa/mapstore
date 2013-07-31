@@ -1368,6 +1368,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         var requestFunction = function() {
 							var asreq = this.getAsyncRequest(downloadForm);
     						this.wpsClusterManager.execute('gs:Download', asreq, this.executeCallback, this);
+							
+							// //////////////////////////////////////////////////
+							// Scrilling to the bottom of the panel to show the 
+							// status progres in the Grid
+							// //////////////////////////////////////////////////
+							downloadForm.body.dom.scrollTop = 200;
                         };
                         
                         //check the email notification field
@@ -1756,9 +1762,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             return;
         }
         
-        /*if(phase && phase != 'RUNNING'){
+        if(phase && (phase == 'COMPLETED' || phase == 'FAILED')){
             return;
-        }*/
+        }
         
         r.beginEdit();
         
