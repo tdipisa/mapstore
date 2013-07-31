@@ -265,17 +265,13 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
                 
                 if(pr == null){
                     me.geoStoreClient.getCategoryResources(me.id, 
-                        callback/*, function(){
-                            me.fireEvent("geoStoreFailure", me);
-                        }*/);
+                        callback);
                 }else{
                     me.geoStoreClient.getLikeName({ 
                         type: "resource", 
                         regName: me.getPrefixInstanceName(process)+"*"
                     }, 
-                    callback/*, function(){
-                        me.fireEvent("geoStoreFailure", me);
-                    }*/);
+                    callback);
                 }
                 
             }
@@ -310,25 +306,6 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
      */
     updateInstance: function(instanceName, statusUpdated, instanceIndex, executionId, callback){
         var me = this;
-		
-        /*Ext.Ajax.request({
-            url: statusLocation,
-            method: 'GET',
-            success: function(response, opts){  
-                var responseObj=new OpenLayers.Format.WPSExecute().read(response.responseText);
-                me.responseManager(responseObj,instanceName, callback, statusUpdated, instanceIndex);
-            },
-            failure:  function(response, opts){
-				if(!silentErrors){
-					Ext.Msg.show({
-						title: "Instance Update Status Exception",
-						msg: response,
-						buttons: Ext.Msg.OK,
-						icon: Ext.Msg.ERROR
-					});
-				}
-            }
-        });*/
 		
 		var request = {
             type: "raw",
@@ -490,10 +467,7 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
 		geoStore.updateEntity(resourceInstance, function(entityID){
 			if(!entityID){
 				geoStore.fireEvent("geostorefailure", this, "Geostore: update WPS Instance Error"); 
-			}/*else{
-				if(meCallback)
-					meCallback.call(this,instanceIndex, instancesStatusUpdated);
-			}*/
+			}
 		}); 
 	},
        
@@ -503,7 +477,6 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
     responseManager: function(executeProcessResponse, processInstance, 
         callback, instancesStatusUpdated, instanceIndex) {
 		
-        //var instanceInfo;
         var geoStore;
         var me = this;
         var stautsInfo;
@@ -512,16 +485,12 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
             type: "resource",
             name: processInstance,
             regName: processInstance + "*",
-            //metadata: "",
-            //status: "",
-            category: me.id/*,
-            store: Ext.util.JSON.encode(executeProcessResponse)*/
+            category: me.id
         };
         
         var meCallback = callback;
         
 		if(executeProcessResponse instanceof Object){            
-            //resourceInstance.store = Ext.util.JSON.encode(executeProcessResponse);
             
             if(executeProcessResponse.exceptionReport){
                 stautsInfo = {
@@ -578,7 +547,6 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
                 }	
             }
         }else{
-            //resourceInstance.store = executeProcessResponse;  
             stautsInfo = {
                 status: "Process Succeeded",
                 raw: true
@@ -586,19 +554,7 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
         } 
 
         resourceInstance.description = Ext.util.JSON.encode(stautsInfo);
-		
-		/*var i = 0;
-		var attributes = [];
-		for(var property in stautsInfo){		
-			attributes.push({
-				name: property,
-				type: 'STRING',
-				value: stautsInfo[property]		
-			});
-		}
-		
-        resourceInstance.attributes = attributes;*/		
-		
+				
 		geoStore = this.geoStoreClient;
         geoStore.getLikeName(resourceInstance, function(resources){
             if(resources.length > 0){
@@ -623,7 +579,7 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
             }       
         }); 
       
-        return null; //instanceInfo;
+        return null;
     }    
 });
 

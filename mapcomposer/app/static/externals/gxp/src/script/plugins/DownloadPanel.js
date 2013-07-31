@@ -438,7 +438,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				    this.wpsClusterManager = new gxp.plugins.WPSClusterManager({
                         id: "DownloadPanelwpsClusterManager",
                         url: this.wpsUrl,
-                        proxy: this.target.proxy//,//this.wpsProxy,
+                        proxy: this.target.proxy
                         /*geoStoreClient: new gxp.plugins.GeoStoreClient({
                             url: this.geostoreUrl,
                             user: this.geostoreUser,
@@ -760,7 +760,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             this.spatialSettings.items.each(function(field) {
                                 field.reset();
                             });
-                            this.toggleControl(); //this.spatialSelection.removeAllFeatures();
+                            this.toggleControl();
                             this.updateFormStatus();
                         }
                     }
@@ -819,8 +819,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					ref: "../selectionMode",
 					fieldLabel: this.settingSel,
                     disabled: true,
-					//itemCls: 'x-check-group-alt',
-					//columns: 1,
 					width: 140,
 					allowBlank: false,
                     valueField: 'value',
@@ -896,18 +894,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         ]
                     })
                 }
-				/*{
-					xtype: 'radiogroup',
-					ref: "../cutMode",
-                    disabled: true,
-					fieldLabel: this.settingCut,
-					itemCls: 'x-check-group-alt',
-					columns: 1,
-					items: [
-						{boxLabel: 'Intersection', name: 'cb-col-2', inputValue: false, checked: true},
-						{boxLabel: 'Clip', name: 'cb-col-2', inputValue: true}
-					]
-				} */
 			]
 		});
         
@@ -928,17 +914,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 
         this.emailNotification = new Ext.form.FieldSet({
             title: this.emailNotificationTitle,
-            //checkboxToggle: true,
-            //collapsed: false,
             ref: "emailNotification",
             items: [
-                /*{ // TODO Disabled due to unimplemented plug-in
-                    xtype: "textfield",
-                    ref: "../filterField",
-                    fieldLabel: this.optFilter,
-                    width: 140,
-                    disabled: false                 
-                },*/
                 {
                     xtype: "textfield",
                     vtype: "email",
@@ -950,14 +927,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             ]
         });
 
-        // set the cookie
-        /*
-        Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
-            expires: new Date(new Date().getTime()+(1000*60*60*24*7)) //7 days from now
-        }));
-        
-        // TODO: The developer must provide an implementation which returns an object hash which represents the Component's restorable state.
-        */
         // create the data store
         var store = new Ext.data.ArrayStore({
             fields: [
@@ -1064,14 +1033,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							}
 							this.items[0].tooltip = tooltip;
 							return icnClass;
-						}/*,
-						handler: function(grid, rowIndex, colIndex) {
-							var rec = store.getAt(rowIndex);
-							var execStatus = rec.get('executionStatus'); 
-							if(execStatus.indexOf('Succeeded')!= -1){
-								mydlp.getInstance(rec.get('id'));
-							}
-						}*/
+						}
                     }]
                 }, {
                     xtype: 'actioncolumn',
@@ -1098,35 +1060,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     width    : 79, 
                     sortable : true, 
                     dataIndex: 'progress'
-                },
-                /*{
-                    id       : 'result',
-                    header   : 'RESULT', 
-                    width    : 50, 
-                    sortable : true, 
-                    dataIndex: 'result'
-                },*/{
-                    //xtype: 'actioncolumn',
+                }, {
 					id       : 'result',
                     header: this.resResult, 
                     width: 53,
                     dataIndex: 'result',
-                    /*items: [{
-						getClass: function(v, meta, rec) { 
-							var tooltip = '', icnClass='';
-							console.log(rec.get('result'));
-							if(rec.get('result')!= '') {    
-									icnClass = 'download';
-									tooltip = 'Download result';
-							}
-							this.items[0].tooltip = tooltip;
-							return icnClass;
-						},
-						handler: function(grid, rowIndex, colIndex) {
-							var rec = store.getAt(rowIndex);
-							console.log(rec.get('result'));
-						}
-                    }],*/
                     renderer: function (val, obj, record) {
 						if(!val){
 							return;
@@ -1146,25 +1084,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					}
                 }
             ],
-            //stripeRows: true,
-            //autoExpandColumn: 'description',
             height: 170,
-            //width: 600,
             title: this.resTitle,
-            /*
-            // config options for stateful behavior, cookie
-            stateful: true,
-            stateId: 'resultsState',
-            */
-            listeners:{
-                viewready:{
-                    fn: function(){
-						//this.getInstances(true);
-						//this.startRunner();
-					},
-                    scope: this
-                }
-            },
             scope:this
         });
 		
@@ -1383,25 +1304,22 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         };
                         
                         //check the email notification field
-                        // if it's checked but invalid, ask the user to confirm the operation without email notification
-                        //if(downloadForm.emailNotification.checkbox.getAttribute('checked')) {
-                            if(!downloadForm.emailField.isValid()) {
-                                return Ext.Msg.show({
-                                    title: this.msgEmptyEmailTitle,
-                                    msg: this.msgEmptyEmailMsg,
-                                    buttons: Ext.Msg.YESNOCANCEL,
-                                    fn: function(btnValue) {
-                                        if(btnValue == 'yes') {
-                                            requestFunction.call(this);
-                                        }
-                                        return;
-                                    },
-                                    scope: this,
-                                    animEl: 'elId',
-                                    icon: Ext.MessageBox.QUESTION
-                                });
-                            }
-                        //}
+						if(!downloadForm.emailField.isValid()) {
+							return Ext.Msg.show({
+								title: this.msgEmptyEmailTitle,
+								msg: this.msgEmptyEmailMsg,
+								buttons: Ext.Msg.YESNOCANCEL,
+								fn: function(btnValue) {
+									if(btnValue == 'yes') {
+										requestFunction.call(this);
+									}
+									return;
+								},
+								scope: this,
+								animEl: 'elId',
+								icon: Ext.MessageBox.QUESTION
+							});
+						}
                         
                         // check the filter field
                         // if it's checked but invalid, ask the user to confirm the operation without the filter
@@ -1452,9 +1370,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      * private: method[executeCallback]
      */        
     executeCallback: function(instanceOrRawData){
-        //var task = new Ext.util.DelayedTask(this.getInstances, this, [false]);
-        //task.delay(1000);
-
 		var executeResponse = instanceOrRawData.executeResponse;
 		
 		if(executeResponse){
@@ -1531,7 +1446,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         var cropSel = dform.cutMode.getValue();
         
         if(cropSel)
-            crop = cropSel;//.inputValue === true ? "true" : "false";
+            crop = cropSel;
         
         var layer = dform.layerCombo.getValue();
         var crs = dform.crsCombo.getValue();
@@ -1552,8 +1467,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                        
             var tf = new OpenLayers.Feature.Vector(clone);
             wkt = formatwkt.write(tf);
-            
-            //console.log(wkt);
         }
 
         var request = {
@@ -1562,11 +1475,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             status: true,
             inputs:{
                 layerName : new OpenLayers.WPSProcess.LiteralData({value:layer}),
-                //"application/gml-3.1.1" "application/zip"
                 outputFormat:new OpenLayers.WPSProcess.LiteralData({value:format}),
                 targetCRS:new OpenLayers.WPSProcess.LiteralData({value:crs}),
                 ROI: new OpenLayers.WPSProcess.ComplexData({
-                    //value: "MULTIPOLYGON (((593183.6607205212 4923980.52355841, 593157.5354776975 4925010.357654894, 593538.9831172063 4925012.3979659295, 593486.3194805589 4924758.104346828, 593396.420353626 4924644.995457535, 593390.2700977508 4924528.182140326, 593279.007632818 4924326.4864263795, 593256.9034614969 4924278.360480662, 593221.8366082398 4924192.04550526, 593198.169007116 4924063.757134442, 593194.3458770494 4924031.687860058, 593183.6607205212 4923980.52355841)))",
                     value: wkt,
                     mimeType: "application/wkt"
                 }),
@@ -1601,22 +1512,18 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      * private: method[getInstances]
      */
     getInstances: function(update){        
-        // TODO getExecuteInstances deve essere slegato da geostore
         var me = this;
         this.wpsClusterManager.getExecuteInstances("gs:Download", update, function(instances){
             var store = me.resultPanel.getStore();
             store.removeAll();
             var dsc, p;
             for(var i=0; i<instances.length; i++){
-                //console.log(instances[i]);
                 var data = {
                     id: '',
 					name: '',
                     executionId: '',
                     executionStatus: '',
                     description: '',
-                    //description: '',
-                    //description: '',
 					progress: '',
 					result: '',
                     status:''
@@ -1629,7 +1536,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				data.progress = dsc.progress;
 				data.result = dsc.result;
 				
-                //console.log(dsc);
                 switch(dsc.status){
                     case 'Process Started':
                     case 'Process Accepted':
@@ -1644,27 +1550,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 }
 				
 				data.executionId = dsc.executionId;
-                /*if(dsc.statusLocation){
-                    data.description = dsc.statusLocation;
-                    var getParams = dsc.statusLocation.split("?");
-                    if(getParams.length>1){
-                        var params = Ext.urlDecode(getParams[1]);
-                        if(params.executionId){
-                            data.executionId = params.executionId;
-                        }
-                    }
-                }*/
 				
-                //console.log(data);
                 p = new store.recordType(data); // create new record
                 store.add(p);
             }
 			
             me.resultPanel.getView().refresh();
-            //me.startRunner();
-        });
-         
+        });         
     },
+	
     deleteHandler: function(grid, rowIndex, colIndex) {
 			var store = grid.getStore();
             var rec = store.getAt(rowIndex);
@@ -1726,13 +1620,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 '<td>{description}</td></tr>',
                 '<tr><th>'+this.msgCategory+'</th>',          
                 '<td>{category}</td></tr>',
-                /*'<tr><th>'+this.msgMetadata+'</th>',          
-                '<td>{metadata}</td></tr>',
-                '<tr><th>'+this.msgAttributes+'</th>',        
-                '<td>{attributes}</td></tr>',
-                '<td>{store}</td></tr>',*/
                 '</table>'
-                );
+            );
           
             instance.Resource.store = Ext.encode(instance.Resource.data);
             instance.Resource.category = Ext.encode(instance.Resource.category);
@@ -1741,8 +1630,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 msg: tpl.applyTemplate(instance.Resource),
                 buttons: Ext.Msg.OK,
                 icon: Ext.Msg.INFO
-            });
-            
+            });            
        });
     },
     
@@ -1750,34 +1638,27 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
         var store = this.resultPanel.getStore();
         
-        //if(!this.runningTask)
-            this.runningTask = Ext.TaskMgr.start({
-                run: function(){
-                    
-                    // reset pending
-                    this.pendingRows = 0;
-    
-                    store.each(this.updateRecord, this);
-    
-                    // Stop if nothing left pending
-                    if(this.pendingRows <= 0){
-                        return false;
-                    }
-                },
-                interval: 10000,
-                scope: this
-            });
-       // else
-       //     Ext.TaskMgr.start(this.runningTask);
-        
-        
+		this.runningTask = Ext.TaskMgr.start({
+			run: function(){
+				
+				// reset pending
+				this.pendingRows = 0;
+
+				store.each(this.updateRecord, this);
+
+				// Stop if nothing left pending
+				if(this.pendingRows <= 0){
+					return false;
+				}
+			},
+			interval: 10000,
+			scope: this
+		});        
     },
+	
     stopRunner: function(){
-        
-        //Ext.TaskMgr.stopAll();
         if(this.runningTask)
-            Ext.TaskMgr.stop(this.runningTask);
-        
+            Ext.TaskMgr.stop(this.runningTask);        
     },
     
     pendingRows: 0,
@@ -1790,9 +1671,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         if(!execId){
             return;
         }
-        
-        // TODO: i nomi dei campi delle due richieste wps non coincidono, workaround temporaneo
-		
+        		
         if(execStatus == 'Failed' || execStatus == 'Succeeded'){
             return;
         }
@@ -1816,7 +1695,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             
             if(!(magicString in list)){
                 /* // DEBUG
-                alert("Lista vuota");
                 for (var i in list){
                     console.log(i);
                     console.log(list[i]);
@@ -1832,32 +1710,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 r.set('result', x[0].result);
             } 
 			
-			/*var status;
-			var exStatus = execStatus;
-			var phase = x[0].phase;
-			switch(phase){
-				case 'ACCEPTED': status = 'Process Accepted'; break;
-				case 'STARTED': status = 'Process Started'; break;
-				case 'COMPLETED': status = 'Process Succeeded'; break;
-				case 'RUNNING': status = 'Process Running'; break;
-				case 'FAILED': status = 'Process Failed'; break;
-				case 'CANCELLED': status = 'Process Cancelled'; break;
-				default:
-					break;
-			}
-			
-			if(exStatus != status){*/
-				//this.wpsClusterManager._updateInstance(r);
-			/*}*/
+			//this.wpsClusterManager._updateInstance(r);
 			
         });        
         
-        //console.log(r.get('phase') + " "+r.get('executionStatus'));
         // store pending task
         if((!r.get('phase') || (r.get('phase') == 'RUNNING')) && (r.get('executionStatus') != 'Failed')){
-            //console.log("Incrementing pending task");
             this.pendingRows += 1;
-            //console.log(this.pendingRows);
         }
         
         r.endEdit();
@@ -1879,8 +1738,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	},
     
     updateFormStatus: function() {
-        //enable buffer only if layer, crs and selection mode have a value
-        if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()
+	    //
+        // Enable buffer only if layer, crs and selection mode have a value.
+        //
+		if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()
             && this.formPanel.selectionMode.getValue() && this.spatialSelection.features.length > 0) {
             this.formPanel.bufferField.enable();
         } else {
@@ -1911,8 +1772,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             this.formPanel.cutMode.disable();
         }
         
+		//
         // show the vector filter fieldset if layer is selected and it is not a raster
-        if(layer && !isRaster) {
+        //
+		if(layer && !isRaster) {
             this.vectorFilterContainer.show();
         } else {
             this.vectorFilterContainer.collapse();
@@ -1965,15 +1828,19 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         }, this)
     },
     
-    // check if the selected layer is raster or vector by performing a DescribeFeatureType and a DescribeCoverage
+    /**
+	 * Check if the selected layer is raster or vector by performing a DescribeFeatureType and a DescribeCoverage
+	 */
     getLayerType: function(layer, callback, scope) {
         var layerSource = this.target.layerSources[layer.source],
             url = layerSource.url,
             questionMarkIndexOf = url.indexOf('?'),
             separator, wfsUrl, wcsUrl;
         
-        //if we found the "wcs" keyword, just return WCS
-        if(layer.wcs) return callback.call(this, 'WCS');
+		//
+        // If we found the "wcs" keyword, just return WCS
+        //
+		if(layer.wcs) return callback.call(this, 'WCS');
         
         this.showMask();
         
@@ -1986,9 +1853,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         wfsUrl = url + separator + 'service=WFS&request=DescribeFeatureType&version='+this.wfsDefaultVersion+'&typeName='+layer.name;
         wcsUrl = url + separator + 'service=WCS&request=DescribeCoverage&version='+this.wcsDefaultVersion+'&identifiers='+layer.name;
         
-        //DescribeCoverage request: if it returns a valid DescribeCoverage response, return the WCS layer type
+		//
+        // DescribeCoverage request: if it returns a valid DescribeCoverage response, return the WCS layer type
         // function is needed because we need to execute it if the DescribeFeatureType parsing fails and if the request fails
-        var checkDescribeCoverage = function() {
+        // 
+		var checkDescribeCoverage = function() {
             var requestUrl = this.isSameOrigin(wcsUrl) ? wcsUrl : this.target.proxy + encodeURIComponent(wcsUrl);
             Ext.Ajax.request({
                 url: requestUrl,
@@ -2014,9 +1883,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             });
         };
         
+		//
         //DescribeFeatureType request: if it returns a valid DescribeFeatureType response, return the WFS layer type
-        var requestUrl = this.isSameOrigin(wfsUrl) ? wfsUrl : this.target.proxy + encodeURIComponent(wfsUrl);
-        Ext.Ajax.request({
+        //
+		var requestUrl = this.isSameOrigin(wfsUrl) ? wfsUrl : this.target.proxy + encodeURIComponent(wfsUrl);
+        
+		Ext.Ajax.request({
             url: requestUrl,
             method: 'GET',
             scope: this,
