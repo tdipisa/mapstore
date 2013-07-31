@@ -634,11 +634,11 @@ GeoExt.Lang.add("de", {
 		executionIdPresentErrorMsg: "Die angegebene execID ist bereits in der Ergebnisstabelle vorhanden",	
 		executionIdEmptyErrorMsg: "Der Server hat eine leere execID zurückgeliefert",	
 		executionIdInvalidErrorMsg: "execID ist nicht gültig!",	
-		processExecutions: "Prozesse",	
+		processExecutions: "Execution Prozesse",	
 		processResponseErrorTitle: "Fehler bei der Antwort des Prozesses",	
 		processResponseErrorMsg: "Der Prozess antwortet nicht korrekt",	
 		describeProcessErrorMsg: "Es ist nicht möglich die Antwort des Servers zu lesen",	
-		bufferFieldLabel: "Buffer (m)"
-		
+		bufferFieldLabel: "Buffer (m)",
+		downloadFormFieldSetTitle: "Formulare zum Herunterladen"		
     }
 });

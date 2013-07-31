@@ -327,6 +327,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	describeProcessErrorMsg: "Cannot read response",
 	
 	bufferFieldLabel: "Buffer (m)",
+	
+	downloadFormFieldSetTitle: "Download Form",
     
     /** private: method[constructor]
      */
@@ -620,7 +622,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			items: [
 				{
 					xtype: "combo",
-					ref: "../layerCombo",
+					ref: "../../layerCombo",
 					fieldLabel: this.dselLayer,
 					width: 140,
 					mode: 'local',
@@ -740,7 +742,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				},
 				{
 					xtype: "combo",
-					ref: "../crsCombo",
+					ref: "../../crsCombo",
 					fieldLabel: this.dselCRS,
 					width: 140,
 					mode: 'local',
@@ -767,7 +769,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				},	
 				{
 					xtype: "combo",
-					ref: "../formatCombo",
+					ref: "../../formatCombo",
 					fieldLabel: this.dselFormat,
 					width: 140,
 				    mode: 'local',
@@ -788,7 +790,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             hidden: true,
             disabled: true,
 			width: 140,
-            ref: "../placeSearch",
+            ref: "../../placeSearch",
             listeners: {
                 scope: this,
                 'select': function(store, record) {
@@ -816,7 +818,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			items: [
 				{
 					xtype: 'combo',
-					ref: "../selectionMode",
+					ref: "../../selectionMode",
 					fieldLabel: this.settingSel,
                     disabled: true,
 					width: 140,
@@ -842,7 +844,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 this.placeSearch,
 				{
 					xtype: "numberfield",
-					ref: "../bufferField",
+					ref: "../../bufferField",
 					fieldLabel: this.bufferFieldLabel,
 					width: 140,
                     enableKeyEvents: true,
@@ -878,7 +880,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				},
                 {
                     xtype: 'combo',
-					ref: "../cutMode",
+					ref: "../../cutMode",
                     disabled: true,
 					fieldLabel: this.settingCut,
                     valueField: 'value',
@@ -914,13 +916,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 
         this.emailNotification = new Ext.form.FieldSet({
             title: this.emailNotificationTitle,
-            ref: "emailNotification",
+            ref: "../emailNotification",
             items: [
                 {
                     xtype: "textfield",
                     vtype: "email",
                     allowBlank: false,
-                    ref: "../emailField",
+                    ref: "../../emailField",
                     fieldLabel: this.emailFieldLabel,
                     width: 140
                 }
@@ -1225,10 +1227,39 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			labelWidth: 80,
 			monitorValid: true,
 			items:[
-				this.laySel,
-				this.spatialSettings,
-                this.vectorFilterContainer,
-				this.emailNotification,
+				{
+					xtype: "fieldset",
+					title: this.downloadFormFieldSetTitle,
+					items: [
+						this.laySel,
+						this.spatialSettings,
+						this.vectorFilterContainer,
+						this.emailNotification
+					],
+					buttons:[
+						{
+							text: this.btnResetTxt,
+							ref: '../../resetButton',
+							cls: 'x-btn-text-icon',
+							icon :'theme/app/img/silk/application_form_delete.png',
+							scope: this,
+							handler: function(){
+								// ////////////////////////////////////////
+								// Remove the previous selected layer, 
+								// from this tool if exists.
+								// ////////////////////////////////////////
+								if(this.selectedLayer){
+									this.target.mapPanel.layers.remove(this.selectedLayer);
+								}
+								
+								// ///////////////////
+								// Reset From fields.
+								// ///////////////////
+								this.resetForm();
+							}
+						}
+					]
+				},
 				this.resultFieldSet
 			],
 			buttons:[
@@ -1251,7 +1282,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         }
                     }
 				},
-                {
+                /*{
                     text: this.btnResetTxt,
                     ref: '../resetButton',
                     cls: 'x-btn-text-icon',
@@ -1271,7 +1302,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         // ///////////////////
                         this.resetForm();
                     }
-                },
+                },*/
 				{
 					text: this.btnDownloadTxt,
 					type: 'submit',
@@ -1706,7 +1737,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var x = list[magicString];
             if( x && (x.length > 0) ){
                 r.set('phase', x[0].phase);
-                r.set('progress', x[0].progress);
+                r.set('progress', x[0].progress + "%");
                 r.set('result', x[0].result);
             } 
 			
@@ -1913,7 +1944,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         this.vectorFilterContainer.removeAll();
         this.vectorFilterContainer.add({
             xtype: "gxp_filterbuilder",
-            ref: "../filterBuilder",
+            ref: "../../filterBuilder",
             attributes: schema,
             allowBlank: true,
             allowGroups: false
