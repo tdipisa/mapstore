@@ -6,6 +6,12 @@
     background-image: url(img/silk/map.png);
 }
 
+/* Override the original ExtJs css in order to remove dirty.gif 
+   image from grid records */
+.x-grid3-dirty-cell {
+    background-image:url();
+}
+
 /* position the zoom slider within map panel */
 .gx-zoomslider {
     top: 90px;

@@ -354,10 +354,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						this.formatStore.removeAll();
 						if(layerRecord.data.wcs === true){
 							this.formatStore.loadData(this.formats.wcs, false);
-							this.formPanel.cutMode.disable();
+							//this.formPanel.cutMode.disable();
 						}else{
 							this.formatStore.loadData(this.formats.wfs, false);
-                            this.formPanel.cutMode.enable();
+                            //this.formPanel.cutMode.enable();
                             this.showMask();
                             this.featureManager.setLayer(layerRecord);
 						}
@@ -613,6 +613,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	resetForm: function(){
 		this.toggleControl();
 		this.formPanel.getForm().reset();
+		this.updateFormStatus();
 	},
 	
     /** private: method[toggleControl]
@@ -789,7 +790,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					resizable: true,
 					typeAhead: true,
 					typeAheadDelay: 3,
-					allowBlank: false,
+					allowBlank: true,
                     listeners: {
                         scope: this,
                         select: function() {
@@ -856,7 +857,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					fieldLabel: this.settingSel,
                     disabled: true,
 					width: 140,
-					allowBlank: false,
+					allowBlank: true,
                     editable: false,
                     valueField: 'value',
                     displayField: 'text',
@@ -923,12 +924,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     displayField: 'text',
                     triggerAction: 'all',
                     mode: 'local',
-                    value: false,
+                    value: true,
                     width: 140,
                     store: new Ext.data.ArrayStore({
                         fields: ['value', 'text'],
                         data: [
-                            [false, this.msgIntersection], [true, this.msgClip]
+                            [true, this.msgClip], [false, this.msgIntersection]
                         ]
                     })
                 }
@@ -1056,6 +1057,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									break;
 								case 'Process Running':
 								case 'Running':
+								case 'Process Queued':
+								case 'Queued':
 									if(rec.get('phase')=='COMPLETED'){
 										icnClass = 'accept';
 										tooltip = 'Success';
@@ -1197,6 +1200,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 										case 'STARTED': status = 'Process Started'; break;
 										case 'COMPLETED': status = 'Process Succeeded'; break;
 										case 'RUNNING': status = 'Process Running'; break;
+										case 'QUEUED': status = 'Process Queued'; break;
 										case 'FAILED': status = 'Process Failed'; break;
 										case 'CANCELLED': status = 'Process Cancelled'; break;
 									}
@@ -1397,9 +1401,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									}
 								}
 								
-								if(this.spatialSelection.features.length){
+								/*if(this.spatialSelection.features.length){*/
 									requestFunction.call(this);
-								}else{
+								/*}else{
 									Ext.Msg.show({
 										title: this.errMissGeomTitle ,
 										msg: this.errMissGeomMsg,
@@ -1407,16 +1411,16 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 										icon: Ext.Msg.INFO
 									});
 									return;						
-								}
+								}*/
 							},
 							scope:this
 						}
 					]
 				},
 				this.resultFieldSet
-			],
+			]/*,
 			buttons:[
-				/*'->',
+				'->',
 				{
 					text: this.btnRefreshTxt,
                     ref: '../refreshButton',
@@ -1545,8 +1549,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}
 					},
 					scope:this
-				}*/
-			]
+				}
+			]*/
 		});
 		
 		this.formPanel = downloadForm;
@@ -1594,6 +1598,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			switch(executeResponse.status.name){
 				case 'Process Started':
 				case 'Process Running':
+				case 'Process Queued':
 				case 'Process Accepted':
 				case 'Process Paused':
 				case 'Process Failed':
@@ -1631,7 +1636,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
     getAsyncRequest: function(dform){
     
-        // default true
         var crop = "false";
         var cropSel = dform.cutMode.getValue();
         
@@ -1642,10 +1646,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         var crs = dform.crsCombo.getValue();
         var format = dform.formatCombo.getValue();
         
-        var wkt;
-        var len= this.spatialSelection.features.length;
-        if(len > 0){
-            
+        var wkt, RoiCRS;
+        var len = this.spatialSelection.features.length;
+		
+        if(len > 0){            
             var formatwkt = new OpenLayers.Format.WKT();
             
             // ///////////////////////////////////////////////
@@ -1666,24 +1670,23 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             
             var clone = feature.geometry.clone();
             
-            clone = clone.transform(mapProj, choosenProj);
+            //clone = clone.transform(mapProj, choosenProj);
                        
             var tf = new OpenLayers.Feature.Vector(clone);
             wkt = formatwkt.write(tf);
+			
+			RoiCRS = mapProj.getCode();
         }
-
+		
         var request = {
             storeExecuteResponse: true,
             lineage:  true,
             status: true,
             inputs:{
-                layerName : new OpenLayers.WPSProcess.LiteralData({value:layer}),
-                outputFormat:new OpenLayers.WPSProcess.LiteralData({value:format}),
-                targetCRS:new OpenLayers.WPSProcess.LiteralData({value:crs}),
-                ROI: new OpenLayers.WPSProcess.ComplexData({
-                    value: wkt,
-                    mimeType: "application/wkt"
-                }),
+                layerName : new OpenLayers.WPSProcess.LiteralData({value: layer}),
+                outputFormat: new OpenLayers.WPSProcess.LiteralData({value: format}),
+                targetCRS: new OpenLayers.WPSProcess.LiteralData({value: crs}),
+				RoiCRS: new OpenLayers.WPSProcess.LiteralData({value: RoiCRS}),
                 cropToROI: new OpenLayers.WPSProcess.LiteralData({value:crop})
             },
             outputs: [{
@@ -1691,6 +1694,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 mimeType: "application/zip"
             }]
         };
+		
+		if(wkt){
+			request.inputs.ROI = new OpenLayers.WPSProcess.ComplexData({
+				value: wkt,
+				mimeType: "application/wkt"
+			});
+		}	
 		
 		var filter;
 		if(dform.filterBuilder){
@@ -1772,7 +1782,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             //var id = rec.get('id');
             
 			var phase = rec.get('phase');
-            if(!phase || phase == 'RUNNING'){                
+            if(!phase || phase == 'RUNNING' || phase == 'QUEUED'){                
                 Ext.Msg.show({
                    title: this.msgRemRunningTitle,
                    msg: this.msgRemRunningMsg,
@@ -1922,7 +1932,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         });        
         
         // store pending task
-        if((!r.get('phase') || (r.get('phase') == 'RUNNING')) && (r.get('executionStatus') != 'Failed')){
+        if((!r.get('phase') || (r.get('phase') == 'RUNNING') || (r.get('phase') == 'QUEUED')) && (r.get('executionStatus') != 'Failed')){
             this.pendingRows += 1;
         }
         
@@ -1948,11 +1958,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	    //
         // Enable buffer only if layer, crs and selection mode have a value.
         //
-		if(this.formPanel.layerCombo.getValue() && this.formPanel.crsCombo.getValue()
+		if(this.formPanel.layerCombo.getValue() /*&& this.formPanel.crsCombo.getValue()*/
             && this.formPanel.selectionMode.getValue() && this.spatialSelection.features.length > 0) {
             this.formPanel.bufferField.enable();
+			this.formPanel.cutMode.enable();
         } else {
             this.formPanel.bufferField.disable();
+			this.formPanel.cutMode.disable();
         }
         
 		var layer = this.formPanel.layerCombo.getValue();
@@ -1963,20 +1975,20 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var layerComboStore = this.formPanel.layerCombo.getStore();
 		var layerRecordIndex = layerComboStore.find('name', layer);
 		var layerRecord = layerComboStore.getAt(layerRecordIndex);
-		var isRaster = layerRecord.data.wcs;  
+		var isRaster = layerRecord ? layerRecord.data.wcs : false;  
 
-        if(layer && this.formPanel.crsCombo.getValue()) {
+        if(layer /*&& this.formPanel.crsCombo.getValue()*/) {
             this.formPanel.selectionMode.enable();
             this.formPanel.placeSearch.enable();
-			if(!isRaster){
+			/*if(!isRaster){
 				this.formPanel.cutMode.enable();
 			}else{
 				this.formPanel.cutMode.disable();
-			}
+			}*/
         } else {
             this.formPanel.selectionMode.disable();
             this.formPanel.placeSearch.disable();
-            this.formPanel.cutMode.disable();
+            //this.formPanel.cutMode.disable();
         }
         
 		//

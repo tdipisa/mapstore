@@ -289,7 +289,8 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
                 statusInfo.status == "Process Accepted" ||
                 statusInfo.status == "Process Paused" ||
                 statusInfo.status == "Process Cancelled" ||
-                statusInfo.status == "Process Running") && update){
+                statusInfo.status == "Process Running" ||
+                statusInfo.status == "Process Queued") && update){
                 this.updateInstance(instances[i].name, statusUpdated, i, statusInfo.executionId, updateCallback);  
             } else {
                 statusUpdated[i]=true; 
@@ -448,6 +449,7 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
 			case 'STARTED': status = 'Process Started'; break;
 			case 'COMPLETED': status = 'Process Succeeded'; break;
 			case 'RUNNING': status = 'Process Running'; break;
+			case 'QUEUED': status = 'Process Queued'; break;
 			case 'FAILED': status = 'Process Failed'; break;
 			case 'CANCELLED': status = 'Process Cancelled'; break;
 		}
@@ -505,6 +507,7 @@ gxp.plugins.WPSClusterManager =  Ext.extend(gxp.plugins.Tool,{
 					case 'STARTED': status = 'Process Started'; break;
 					case 'COMPLETED': status = 'Process Succeeded'; break;
 					case 'RUNNING': status = 'Process Running'; break;
+					case 'QUEUED': status = 'Process Queued'; break;
 					case 'FAILED': status = 'Process Failed'; break;
 					case 'CANCELLED': status = 'Process Cancelled'; break;
 				}
