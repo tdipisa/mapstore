@@ -275,6 +275,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     msgTooltipAccepted: 'Accepted',
     
     msgGeostoreException: "Geostore Exception",
+	
+	msgNone: 'None',
     
     msgBox: 'Box',
 	
@@ -492,16 +494,18 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     }
                 });
                 
-                //register the toogle event on all the map tools with a toggleGroup
-                //on toggle, deactivate the selection mode
+                // Register the toogle event on all the map tools with a toggleGroup
+                // on toggle, deactivate the selection mode
                 this.target.toolbar.items.each(function(item) {
                     if(item.toggleGroup) {
                         item.on({
                             scope: this,
                             toggle: function(tool, toggle) {
+								var isGfi = (tool.scope.ptype != 'gxp_wmsgetfeatureinfo_menu' || tool.scope.ptype != 'gxp_wmsgetfeatureinfo');
                                 if(toggle) {
                                     this.formPanel.selectionMode.reset();
-                                    //reset does not fire the select event
+                                    
+									// Reset does not fire the select event
                                     this.formPanel.selectionMode.fireEvent('select', this.formPanel.selectionMode);
                                 }
                             }
@@ -706,6 +710,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							this.resetForm();
 						},
 						select: function(combo, record, index){
+							this.formPanel.selectionMode.setValue(null);
+							this.formPanel.bufferField.setValue("");
+							this.formPanel.cutMode.setValue(true);
+							
 						    // ////////////////////////////////////////
 							// Remove the previous selected layer, 
 							// from this tool if exists.
@@ -790,7 +798,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					resizable: true,
 					typeAhead: true,
 					typeAheadDelay: 3,
-					allowBlank: true,
+					allowBlank: true/*,
                     listeners: {
                         scope: this,
                         select: function() {
@@ -800,7 +808,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             this.toggleControl();
                             this.updateFormStatus();
                         }
-                    }
+                    }*/
 				},	
 				{
 					xtype: "combo",
@@ -813,6 +821,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					displayField: 'title',
 					valueField: 'format',
 					emptyText: this.initialText,
+					editable: false,
 					resizable: true,
 					allowBlank: false					
 				}
@@ -834,7 +843,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     
                     this.spatialSelection.addFeatures([feature]);
                     
-                    //if the geometry is point, force the user to insert a buffer
+                    // If the geometry is point, force the user to insert a buffer
                     if(feature.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
                         var buffered = OpenLayers.Geometry.Polygon.createRegularPolygon(feature.geometry, 1000, 4);
                         bounds = buffered.getBounds();
@@ -850,6 +859,16 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 
 		this.spatialSettings = new Ext.form.FieldSet({
 			title: this.settingTitle,
+			checkboxToggle: true,
+            collapsed: true,
+			listeners: {
+				scope: this,
+				expand: function(p){
+					this.formPanel.selectionMode.setValue(null);
+					this.formPanel.bufferField.setValue("");
+					this.formPanel.cutMode.setValue(true);
+				}
+			},
 			items: [
 				{
 					xtype: 'combo',
@@ -867,7 +886,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     store: new Ext.data.ArrayStore({
                         fields: ['value', 'text'],
                         data: [
-                            [null, ''], ['box', this.msgBox], ['polygon', this.msgPolygon], ['circle', this.msgCircle], ['place', this.msgPlace]
+                            [null, this.msgNone], ['box', this.msgBox], ['polygon', this.msgPolygon], ['circle', this.msgCircle], ['place', this.msgPlace]
                         ]
                     }),
 					listeners: {
@@ -892,17 +911,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             var me = this,
                                 value = field.getValue();
 
-                            // whatever value, clear the timeouts
+                            // Whatever value, clear the timeouts
                             if(me.bufferHideLoadMaskTimeout) clearTimeout(me.bufferHideLoadMaskTimeout);
                             if(me.bufferTimeout) clearTimeout(me.bufferTimeout);
                                 
                             if(!value) {
-                                //if value is empty and we have an unBufferedFeature stored, replace the buffered feature with the un-buffered one. The user deleted the buffer value, so he wants the original geometry back
+                                // If value is empty and we have an unBufferedFeature stored, replace the buffered feature with the un-buffered one. The user deleted the buffer value, so he wants the original geometry back
                                 if(me.unBufferedFeature) {
                                     this.spatialSelection.addFeatures([me.unBufferedFeature]);
                                 }
                             } else {
-                                //set a timeout to hide the loadmask if the buffer request fails
+                                // Set a timeout to hide the loadmask if the buffer request fails
                                 me.bufferHideLoadMaskTimeout = setTimeout(function() {
                                     
                                     me.loadMask.hide();
@@ -966,7 +985,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             ]
         });
 
-        // create the data store
+        // Create the data store
         var store = new Ext.data.ArrayStore({
             fields: [
                {name: 'id'},
@@ -996,7 +1015,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						icon :'theme/app/img/silk/arrow_refresh.png',
 						scope: this,
 						handler: function(){                           
-							// reset pending
+							// Reset pending
 							this.pendingRows = 0;
 			
 							store.each(this.updateRecord, this);
@@ -1418,145 +1437,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					]
 				},
 				this.resultFieldSet
-			]/*,
-			buttons:[
-				'->',
-				{
-					text: this.btnRefreshTxt,
-                    ref: '../refreshButton',
-                    cls: 'x-btn-text-icon',
-                    icon :'theme/app/img/silk/arrow_refresh.png',
-					scope: this,
-					handler: function(){                           
-                        // reset pending
-                        this.pendingRows = 0;
-        
-                        store.each(this.updateRecord, this);
-        
-                        // Stop if nothing left pending
-                        if(this.pendingRows <= 0){
-                            return false;
-                        }
-                    }
-				},
-                {
-                    text: this.btnResetTxt,
-                    ref: '../resetButton',
-                    cls: 'x-btn-text-icon',
-                    icon :'theme/app/img/silk/application_form_delete.png',
-                    scope: this,
-                    handler: function(){
-                        // ////////////////////////////////////////
-                        // Remove the previous selected layer, 
-                        // from this tool if exists.
-                        // ////////////////////////////////////////
-                        if(this.selectedLayer){
-                            this.target.mapPanel.layers.remove(this.selectedLayer);
-                        }
-                        
-                        // ///////////////////
-                        // Reset From fields.
-                        // ///////////////////
-                        this.resetForm();
-                    }
-                },*/
-				/*{
-					text: this.btnDownloadTxt,
-					type: 'submit',
-					ref: '../downloadButton',
-					cls: 'x-btn-text-icon',
-					icon :'theme/app/img/download.png',
-					handler: function(){
-					    var layerCombo = downloadForm.layerCombo.isValid();
-						var crsCombo = downloadForm.crsCombo.isValid();
-						var formatCombo = downloadForm.formatCombo.isValid();
-						var selectionMode = downloadForm.selectionMode.isValid();
-						var bufferField = downloadForm.bufferField.isValid();
-						var cutMode = downloadForm.cutMode.isValid();									
-						var isValid = layerCombo && crsCombo && formatCombo && 
-							selectionMode  && cutMode && bufferField;
-						
-						if(!isValid){
-						    Ext.Msg.show({
-                                title: this.errMissParamsTitle,
-                                msg: this.errMissParamsMsg,
-                                buttons: Ext.Msg.OK,
-                                icon: Ext.Msg.INFO
-                            });
-                            return;
-						}
-                        
-                        var requestFunction = function() {
-							var asreq = this.getAsyncRequest(downloadForm);
-    						this.wpsClusterManager.execute('gs:Download', asreq, this.executeCallback, this);
-							
-							// //////////////////////////////////////////////////
-							// Scrilling to the bottom of the panel to show the 
-							// status progres in the Grid
-							// //////////////////////////////////////////////////
-							downloadForm.body.dom.scrollTop = 200;
-                        };
-                        
-                        //check the email notification field
-						if(!downloadForm.emailField.isValid()) {
-							return Ext.Msg.show({
-								title: this.msgEmptyEmailTitle,
-								msg: this.msgEmptyEmailMsg,
-								buttons: Ext.Msg.YESNOCANCEL,
-								fn: function(btnValue) {
-									if(btnValue == 'yes') {
-										requestFunction.call(this);
-									}
-									return;
-								},
-								scope: this,
-								animEl: 'elId',
-								icon: Ext.MessageBox.QUESTION
-							});
-						}
-                        
-                        // check the filter field
-                        // if it's checked but invalid, ask the user to confirm the operation without the filter
-                        if(this.vectorFilterContainer.checkbox.getAttribute('checked')) {
-                            if(!downloadForm.filterBuilder.getFilter()) {
-                                return Ext.Msg.show({
-                                    title: this.msgEmptyFilterTitle,
-                                    msg: this.msgEmptyFilterMsg,
-                                    buttons: Ext.Msg.YESNOCANCEL,
-                                    fn: function(btnValue) {
-                                        if(btnValue == 'yes') {
-                                            requestFunction.call(this);
-                                        }
-                                        return;
-                                    },
-                                    scope: this,
-                                    animEl: 'elId',
-                                    icon: Ext.MessageBox.QUESTION
-                                });
-                            }
-                        }
-                        
-						if(this.spatialSelection.features.length){
-                            requestFunction.call(this);
-						}else{
-                            Ext.Msg.show({
-                                title: this.errMissGeomTitle ,
-                                msg: this.errMissGeomMsg,
-                                buttons: Ext.Msg.OK,
-                                icon: Ext.Msg.INFO
-                            });
-                            return;						
-						}
-					},
-					scope:this
-				}
-			]*/
+			]
 		});
 		
 		this.formPanel = downloadForm;
         
 		var panel = gxp.plugins.DownloadPanel.superclass.addOutput.call(this, downloadForm);		
 		panel.autoScroll = true;
+		
 		return panel;
     },
     
@@ -1643,7 +1531,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             crop = cropSel;
         
         var layer = dform.layerCombo.getValue();
-        var crs = dform.crsCombo.getValue();
+        
+		var crs = dform.crsCombo.getValue();
+		crs = crs.indexOf("EPSG:") != -1 ? crs : "";
+		
         var format = dform.formatCombo.getValue();
         
         var wkt, RoiCRS;
@@ -1665,7 +1556,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 }
             }
             
-            var choosenProj = new OpenLayers.Projection(crs);
+            //var choosenProj = new OpenLayers.Projection(crs);
             var mapProj = this.target.mapPanel.map.getProjectionObject();
             
             var clone = feature.geometry.clone();
