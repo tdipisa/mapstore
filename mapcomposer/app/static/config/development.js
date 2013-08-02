@@ -10,6 +10,7 @@
 			"url": "http://localhost:8282/geoserver/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
+			    "FORMAT":"image/png8",
 				"TILED": true,
 				"TILESORIGIN": "-20037508.34, -20037508.34"
             }
