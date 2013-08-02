@@ -600,6 +600,7 @@ GeoExt.Lang.add("en", {
 		processResponseErrorMsg: "The process did not properly respond",	
 		describeProcessErrorMsg: "Cannot read response",	
 		bufferFieldLabel: "Buffer (m)",
-		downloadFormFieldSetTitle: "Download Form"
+		downloadFormFieldSetTitle: "Download Form",
+		loadMaskMsg: "Please wait..."
     }
 });

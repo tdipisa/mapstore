@@ -605,6 +605,7 @@ GeoExt.Lang.add("fr", {
 		processResponseErrorMsg: "Le processus ne répond pas correctement",	
 		describeProcessErrorMsg: "Vous ne pouvez pas lire la réponse du serveur",	
 		bufferFieldLabel: "Buffer (m)",
-		downloadFormFieldSetTitle: "Formulaires Téléchargeables"
+		downloadFormFieldSetTitle: "Formulaires Téléchargeables",
+		loadMaskMsg: "S'il vous plaît attendre..."
     }
 });

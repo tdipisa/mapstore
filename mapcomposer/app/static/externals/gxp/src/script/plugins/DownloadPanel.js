@@ -331,6 +331,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	bufferFieldLabel: "Buffer (m)",
 	
 	downloadFormFieldSetTitle: "Download Form",
+	
+	loadMaskMsg: "Please wait...",
     
     /** private: method[constructor]
      */
@@ -2086,7 +2088,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     },
     
     showMask: function() {
-        if(!this.loadMask) this.loadMask = new Ext.LoadMask(this.formPanel.getEl());
+        if(!this.loadMask) this.loadMask = new Ext.LoadMask(this.formPanel.getEl(), {msg: this.loadMaskMsg});
         this.loadMask.show();
     },
     
