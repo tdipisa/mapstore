@@ -842,6 +842,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         this.placeSearch = new gxp.GazetteerCombobox(Ext.apply(this.gazetteerConfig, {
             xtype: 'gazetteercombobox',
             fieldLabel: this.placeSearchLabel,
+			labelStyle: 'width: 110px;',
             hidden: true,
             disabled: true,
 			width: 140,
