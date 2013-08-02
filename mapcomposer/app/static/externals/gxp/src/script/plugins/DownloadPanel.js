@@ -1185,7 +1185,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					}
                 }
             ],
-            height: 170,
+            height: 300,
             title: this.resTitle,
             scope:this
         });
@@ -1325,6 +1325,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var downloadForm = new Ext.form.FormPanel({
 			title: this.tabTitle,
 			region: 'center',
+			//layout: 'fit',
 			labelWidth: 80,
 			monitorValid: true,
 			items:[

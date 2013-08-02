@@ -33,11 +33,11 @@
 }
 
 .execution-cls{
-	background-image: url(img/silk/application_put.png) !important;
+	background-image: url(img/silk/add.png) !important;
 }
 
 .execution-cls-delete{
-	background-image: url(img/silk/delete.png) !important;
+	background-image: url(img/geosilk/erase.png) !important;
 }
 
 /* Pan- and Zoom- Panel Styles*/
