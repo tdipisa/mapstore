@@ -501,12 +501,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         item.on({
                             scope: this,
                             toggle: function(tool, toggle) {
-								var isGfi = (tool.scope.ptype != 'gxp_wmsgetfeatureinfo_menu' || tool.scope.ptype != 'gxp_wmsgetfeatureinfo');
                                 if(toggle) {
-                                    this.formPanel.selectionMode.reset();
+                                    //this.formPanel.selectionMode.reset();
                                     
 									// Reset does not fire the select event
-                                    this.formPanel.selectionMode.fireEvent('select', this.formPanel.selectionMode);
+                                    //this.formPanel.selectionMode.fireEvent('select', this.formPanel.selectionMode);
+									this.toggleControl(null, false);									
                                 }
                             }
                         });
@@ -615,9 +615,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	 *  Allows the possibility to reset the internal Form.
      */
 	resetForm: function(){
-		this.toggleControl();
+		this.toggleControl(null, true);
 		this.formPanel.getForm().reset();
 		this.updateFormStatus();
+		
+		if(!this.spatialSettings.collapsed)
+			this.spatialSettings.collapse();
 	},
 	
     /** private: method[toggleControl]
@@ -625,19 +628,22 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	 * 
 	 *  Defines the behavior of the tool's controls enablement when the Radio is checked. 
      */
-	toggleControl: function (value) {
+	toggleControl: function (value, resetForm) {
 		// ////////////////////////////////////////////////
 		// Remove the old features before switching OL 
 		// selection control.
 		// ////////////////////////////////////////////////
-		this.spatialSelection.removeAllFeatures();
-        this.formPanel.bufferField.reset();
+		if(resetForm === true){
+			this.spatialSelection.removeAllFeatures();
+			this.formPanel.bufferField.reset();
 
-        if(value == 'place') {
-            this.formPanel.placeSearch.show();
-        } else {
-            this.formPanel.placeSearch.hide();
-        }
+			if(value == 'place') {
+				this.formPanel.placeSearch.show();
+			} else {
+				this.formPanel.placeSearch.hide();
+			}
+		}
+		
         var toolActivated = false;
         for(key in this.drawControls) {
             var control = this.drawControls[key];
@@ -649,7 +655,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }
         }
         
-        //if a draw tool has been activated, deactivate other "toggleGroup" tools
+        // If a draw tool has been activated, deactivate other "toggleGroup" tools
         if(toolActivated) {
             this.target.toolbar.items.each(function(item) {
                 if(item.toggleGroup) item.toggle(false);
@@ -706,7 +712,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					listeners:{
 					    scope: this,
 						beforeselect: function(combo, record, index){
-						    this.toggleControl();
+						    //this.toggleControl(null, true);
 							this.resetForm();
 						},
 						select: function(combo, record, index){
@@ -892,7 +898,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					listeners: {
 						scope: this,
 						select: function(combo){
-							this.toggleControl(combo.getValue());
+							this.toggleControl(combo.getValue(), true);
                             this.updateFormStatus();
 						}
 					}
@@ -922,8 +928,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                 }
                             } else {
                                 // Set a timeout to hide the loadmask if the buffer request fails
-                                me.bufferHideLoadMaskTimeout = setTimeout(function() {
-                                    
+                                me.bufferHideLoadMaskTimeout = setTimeout(function() {                                    
                                     me.loadMask.hide();
                                 }, 30 * 1000);
 
