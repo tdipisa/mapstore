@@ -556,6 +556,8 @@ GeoExt.Lang.add("en", {
         errWPSTitle: "DownloadProcess not supported",
         errWPSMsg: "This WPS server does not support gs:Download process",
 		emailNotificationTitle: "Email Notification",
+		emailFieldLabel: "Email",
+        vectorFilterTitle: "Filter",  
 		wpsErrorMsg: "The WPS reports the following error",    
         errBufferTitle: "Buffer failed",
         errBufferMsg: "Error buffering feature",        

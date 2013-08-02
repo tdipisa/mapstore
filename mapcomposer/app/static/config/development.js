@@ -1,13 +1,13 @@
 {
-   "geoStoreBase":"http://84.33.2.30/geostore/rest/",
-   "gnBaseUrl": "http://84.33.2.30/geonetwork/",
-   "proxy":"/proxy/?url=",
+   "geoStoreBase":"http://localhost:8282/geostore/rest/",
+   "gnBaseUrl": "http://84.33.2.30/geonetworkbz/",
+   "proxy":"/http_proxy/proxy/?url=",
    "defaultLanguage": "it",
    "tab": true,
    "gsSources":{ 
    		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://84.33.2.30/geoserverbz/ows",
+			"url": "http://localhost:8282/geoserver/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
 				"TILED": true,
@@ -101,7 +101,7 @@
 			"saveState": true,
             "cswconfig": {
                 "catalogs": [
-                        {"name": "Bozen Portal", "url": "http://84.33.2.30/geonetwork/srv/de/csw", "description": "GeoPortale della Provincia di Bolzano"}
+                        {"name": "Bozen Portal", "url": "http://sdi.provincia.bz.it/geonetwork/srv/it/csw", "description": "GeoPortale della Provincia di Bolzano"}
                     ],
                 "dcProperty": "title",
                 "initialBBox": {
@@ -130,10 +130,8 @@
             "featureManager": "featuremanager",
 			"outputTarget": "west",
 			"index": 28,
-			"wpsUrl": "http://84.33.2.30/geoserverbz/ows?service=WPS",
-			"wpsProxy": "/proxy/?url=",
-			"geostoreUrl": "http://84.33.2.30/geostore/rest",
-            "geostoreProxy": "/proxy/?url=",
+			"wpsUrl": "http://localhost:8282/geoserver/ows?service=WPS",
+			"geostoreUrl": "http://localhost:8282/geostore/rest",
             "geostoreUser": "admin",
             "geostorePassword": "admin",
             "gazetteerUrl": "http://sditest.provinz.bz.it/proxy/names/services?service=WFS",
@@ -150,16 +148,13 @@
 				]
 			},
 			"targetCSR": [
+				["Native"],
 				["EPSG:26713"],
+				["EPSG:25832"],
+				["EPSG:32632"],
                 ["EPSG:3034"],
 				["EPSG:3035"],
 				["EPSG:3416"],
-				["EPSG:3833"],
-				["EPSG:3834"],
-				["EPSG:3835"],
-				["EPSG:3837"],
-				["EPSG:3838"],
-				["EPSG:3857"],
 				["EPSG:4258"],
 				["EPSG:4326"],
 				["EPSG:900913"]
@@ -226,11 +221,6 @@
         "EPSG:3397":"+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=4500000 +y_0=0 +ellps=bessel +units=m +no_defs",
         "EPSG:3399":"+proj=tmerc +lat_0=0 +lon_0=15 +k=1 +x_0=5500000 +y_0=0 +ellps=bessel +units=m +no_defs",
         "EPSG:3416":"+proj=lcc +lat_1=49 +lat_2=46 +lat_0=47.5 +lon_0=13.33333333333333 +x_0=400000 +y_0=400000 +ellps=GRS80 +units=m +no_defs",
-        "EPSG:3833":"",
-        "EPSG:3834":"",
-        "EPSG:3835":"",
-        "EPSG:3837":"",
-        "EPSG:3838":"",
         "EPSG:4258":"+proj=longlat +ellps=GRS80 +no_defs"
    }
 }

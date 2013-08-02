@@ -697,6 +697,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: "combo",
 					ref: "../../layerCombo",
 					fieldLabel: this.dselLayer,
+					labelStyle: 'width: 110px;',
 					width: 140,
 					mode: 'local',
 					triggerAction: 'all',
@@ -793,6 +794,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: "combo",
 					ref: "../../crsCombo",
 					fieldLabel: this.dselCRS,
+					labelStyle: 'width: 110px;',
 					width: 140,
 					mode: 'local',
 					triggerAction: 'all',
@@ -820,6 +822,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: "combo",
 					ref: "../../formatCombo",
 					fieldLabel: this.dselFormat,
+					labelStyle: 'width: 110px;',
 					width: 140,
 				    mode: 'local',
 					triggerAction: 'all',
@@ -880,6 +883,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: 'combo',
 					ref: "../../selectionMode",
 					fieldLabel: this.settingSel,
+					labelStyle: 'width: 110px;',
                     disabled: true,
 					width: 140,
 					allowBlank: true,
@@ -908,6 +912,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: "numberfield",
 					ref: "../../bufferField",
 					fieldLabel: this.bufferFieldLabel,
+					labelStyle: 'width: 110px;',
 					width: 140,
                     enableKeyEvents: true,
                     disabled: true,
@@ -944,6 +949,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					ref: "../../cutMode",
                     disabled: true,
 					fieldLabel: this.settingCut,
+					labelStyle: 'width: 110px;',
                     valueField: 'value',
                     displayField: 'text',
                     triggerAction: 'all',
@@ -985,6 +991,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     allowBlank: false,
                     ref: "../../emailField",
                     fieldLabel: this.emailFieldLabel,
+					labelStyle: 'width: 110px;',
                     width: 140
                 }
             ]
@@ -1182,6 +1189,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		
 		this.executionIdField = new Ext.form.CompositeField({		
 			width: 167,
+			labelStyle: 'width: 120px;',
 			items: [
                 {
                     xtype: 'textfield',

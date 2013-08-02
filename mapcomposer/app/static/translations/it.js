@@ -589,7 +589,7 @@ GeoExt.Lang.add("it", {
         errWPSTitle: "DownloadProcess non supportato",
         errWPSMsg: "Questo server WPS non supporta il processo gs:Download",
 		wpsErrorMsg: "Il WPS riporta il seguente errore",        
-        emailNotificationTitle: "Notifica via email",
+        emailNotificationTitle: "Notifica Via Email",
         emailFieldLabel: "Email",
         vectorFilterTitle: "Filtro",        
         placeSearchLabel: "Località",        

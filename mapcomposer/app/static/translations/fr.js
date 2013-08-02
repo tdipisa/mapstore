@@ -526,11 +526,11 @@ GeoExt.Lang.add("fr", {
 	"gxp.plugins.DownloadPanel.prototype":{
 	    initialText: "Sélectionnez un élément ...",
         tabTitle: "Télécharger",    
-        dselTitle: "Sélection des données",
+        dselTitle: "Sélection Des Données",
         dselLayer: "Couche",
         dselCRS: "Cible CRS",
         dselFormat: "Format",        
-        settingTitle: "Réglages spatiales",
+        settingTitle: "Réglages Spatiales",
         settingSel: "Mode de sélection",
         settingCut: "Couper mode",        
         optTitle: "Paramètres facultatifs",
@@ -560,7 +560,7 @@ GeoExt.Lang.add("fr", {
         errWPSTitle: "Télécharger Process non pris en charge",
         errWPSMsg: "Ce serveur WPS ne fonctionne pas avec gs: processus de téléchargement",
 		wpsErrorMsg: "Les WPS signale l'erreur suivante",
-		emailNotificationTitle: "Notification par email",
+		emailNotificationTitle: "Notification Par Email",
         emailFieldLabel: "Email",
         vectorFilterTitle: "Filtre",        
         placeSearchLabel: "Emplacement",        
@@ -600,11 +600,11 @@ GeoExt.Lang.add("fr", {
 		executionIdPresentErrorMsg: "L'ID d'exécution spécifié est déjà dans la grille",	
 		executionIdEmptyErrorMsg: "Le serveur a renvoyé une course ID vide",	
 		executionIdInvalidErrorMsg: "La fonction d'identification n'est pas valide!",	
-		processExecutions: "Processus d'exécution",	
+		processExecutions: "Processus d'Exécution",	
 		processResponseErrorTitle: "Erreur dans le processus de réponse",	
 		processResponseErrorMsg: "Le processus ne répond pas correctement",	
 		describeProcessErrorMsg: "Vous ne pouvez pas lire la réponse du serveur",	
 		bufferFieldLabel: "Buffer (m)",
-		downloadFormFieldSetTitle: "Formulaires téléchargeables"
+		downloadFormFieldSetTitle: "Formulaires Téléchargeables"
     }
 });
