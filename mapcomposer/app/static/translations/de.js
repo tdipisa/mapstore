@@ -565,7 +565,7 @@ GeoExt.Lang.add("de", {
         dselLayer: "Layer",
         dselCRS: "Koordinatensystem",
         dselFormat: "Format",       
-        settingTitle: "Spatial Einstellungen",
+        settingTitle: "Erweiterte Einstellungen",
         settingSel: "Auswahl-Modus",
         settingCut: "Zuschneidemodus",       
         optTitle: "Optionale Einstellungen",

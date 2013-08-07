@@ -526,7 +526,7 @@ GeoExt.Lang.add("en", {
         dselLayer: "Layer",
         dselCRS: "Target CRS",
         dselFormat: "Format",        
-        settingTitle: "Spatial Settings",
+        settingTitle: "Advanced Settings",
         settingSel: "Selection Mode",
         settingCut: "Cut Mode",        
         optTitle: "Optional Settings",

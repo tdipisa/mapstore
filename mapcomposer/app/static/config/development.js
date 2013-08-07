@@ -130,11 +130,7 @@
 			"ptype": "gxp_download",
             "featureManager": "featuremanager",
 			"outputTarget": "west",
-			"index": 28,
 			"wpsUrl": "http://localhost:8282/geoserver/ows?service=WPS",
-			"geostoreUrl": "http://localhost:8282/geostore/rest",
-            "geostoreUser": "admin",
-            "geostorePassword": "admin",
             "gazetteerUrl": "http://sditest.provinz.bz.it/proxy/names/services?service=WFS",
 			"sridLinkTpl": "http://spatialreference.org/ref/#AUTH#/#SRID#/",
 			"formats": {
@@ -170,6 +166,10 @@
                 "geometryName": "geometry",
                 "filterProperty": "gn:name/gn:GeographicalName/gn:spelling/gn:SpellingOfName/gn:text"
             }
+		}, {
+			"ptype":"gxp_downloadtoolaction",
+			"downloadTool": "download",
+			"actionTarget": ["layertree.contextMenu"]
 		}
 	],
     "proj4jsDefs":{

@@ -530,7 +530,7 @@ GeoExt.Lang.add("fr", {
         dselLayer: "Couche",
         dselCRS: "Cible CRS",
         dselFormat: "Format",        
-        settingTitle: "Réglages Spatiales",
+        settingTitle: "Paramètres Avancés",
         settingSel: "Mode de sélection",
         settingCut: "Couper mode",        
         optTitle: "Paramètres facultatifs",

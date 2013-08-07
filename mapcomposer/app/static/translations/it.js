@@ -559,7 +559,7 @@ GeoExt.Lang.add("it", {
         dselLayer: "Layer",
         dselCRS: "CRS di output",
         dselFormat: "Formato",        
-        settingTitle: "Impostazioni Spaziali",
+        settingTitle: "Impostazioni Avanzate",
         settingSel: "Modalità di Selezione",
         settingCut: "Modalità di Ritaglio",        
         optTitle: "Impostazioni Opzionali",

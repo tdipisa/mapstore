@@ -414,8 +414,7 @@ OpenLayers.Format.CQL = (function() {
                         return filter.property + " BETWEEN " + 
                             this.write(filter.lowerBoundary) + " AND " + 
                             this.write(filter.upperBoundary);
-                    } else {
-                        
+                    } else {					
                         return filter.property +
                             " " + operatorReverse[filter.type] + " " + 
                             this.write(filter.value);
