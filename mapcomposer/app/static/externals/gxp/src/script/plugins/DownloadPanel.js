@@ -1057,7 +1057,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					xtype: "combo",
 					ref: "../../crsCombo",
 					fieldLabel: this.dselCRS,
-					disabled: true,
+					disabled: false,
 					labelStyle: 'width: 110px;',
 					width: 140,
 					mode: 'local',
@@ -1971,11 +1971,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		if(this.formPanel.layerCombo.getValue() && 
 			this.formPanel.selectionMode.getValue() && 
 				this.spatialSelection.features.length > 0) {
-			this.formPanel.crsCombo.enable();
+			//this.formPanel.crsCombo.enable();
             this.formPanel.bufferField.enable();
 			this.formPanel.cutMode.enable();
         } else {
-			this.formPanel.crsCombo.disable();
+			//this.formPanel.crsCombo.disable();
             this.formPanel.bufferField.disable();
 			this.formPanel.cutMode.disable();
         }
