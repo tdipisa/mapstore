@@ -34,7 +34,12 @@ Ext.namespace("gxp.plugins");
 
 /** api: constructor
  *  .. class:: DownloadToolAction(config)
+ *	
+ *  This class allows interactions between LayerTree and DownloadTool.
+ *  The layer instance is added to the tool on the fly in order to provide 
+ *  data download.
  *
+ *  Author: Tobia Di Pisa at tobia.dipisa@geo-solutions.it
  */
 gxp.plugins.DownloadToolAction = Ext.extend(gxp.plugins.Tool, {
     
@@ -56,11 +61,22 @@ gxp.plugins.DownloadToolAction = Ext.extend(gxp.plugins.Tool, {
             tooltip: this.downloadToolActionTip,
             handler: function() {
                 var record = selectedLayer;
-                if(record) {				
+                if(record) {		
+
+					// //////////////////////////////////////////////////
+					// Remove the layer from the map. The layer will be 
+					// re-added to the map from the Downlaod tool. 
+					// In this way the user can view the selected layer
+				    // on top.
+					// //////////////////////////////////////////////////
 					
-					//var westPanel = Ext.getCmp("west");
-					//westPanel.setActiveTab(2);
-					
+					var OlMap = this.target.mapPanel.map;
+					var layer = OlMap.getLayersByName(record.data.title)[0];
+					var layerExistsInMap = layer ? true : false;
+					if(layerExistsInMap){
+						OlMap.removeLayer(layer);
+					}
+								
 					this.downloadTool.setLayer(record);
                 }
             },

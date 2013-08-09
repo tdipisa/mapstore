@@ -37,6 +37,8 @@ Ext.namespace("gxp.plugins");
  *  .. class:: DownloadPanel(config)
  *
  *    Plugin for manager WPS Download services 
+ * 
+ *  Author: Tobia Di Pisa at tobia.dipisa@geo-solutions.it
  */   
 gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     
@@ -333,10 +335,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	downloadFormFieldSetTitle: "Download Form",
 	
 	loadMaskMsg: "Please wait...",
-    
+	
     /** private: method[constructor]
      */
     constructor: function(config) {
+	    this.addEvents(
+            /** api: event[ready]
+             *  Fires at the end of the tool's initializzation.
+             */
+            "ready"
+        );
+		
         gxp.plugins.DownloadPanel.superclass.constructor.apply(this, arguments); 
     },   
 	
@@ -358,10 +367,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						this.formatStore.removeAll();
 						if(layerRecord.data.wcs === true){
 							this.formatStore.loadData(this.formats.wcs, false);
-							//this.formPanel.cutMode.disable();
 						}else{
 							this.formatStore.loadData(this.formats.wfs, false);
-                            //this.formPanel.cutMode.enable();
                             this.showMask();
                             this.featureManager.setLayer(layerRecord);
 						}
@@ -416,13 +423,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         }
                     }
 				});
-                this.spatialSelection.events.register("featureadded", this, function(){
+                
+				this.spatialSelection.events.register("featureadded", this, function(){
 					// //////////////////////////////////////////////////////
 					// Check the form status: the buffer field shall be 
 					// enabled here
 					// //////////////////////////////////////////////////////
 					this.updateFormStatus();
 				});
+				
                 this.spatialSelection.events.register('featureremoved', this, function() {
 					// //////////////////////////////////////////////////////
 					// Remove the "unbuffered" copy of the feature
@@ -496,16 +505,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     }
                 });
                 
-                // Register the toogle event on all the map tools with a toggleGroup
-                // on toggle, deactivate the selection mode
-                this.target.toolbar.items.each(function(item) {
+				// //////////////////////////////////////////////
+                // Register the toogle event on all the map tools 
+				// with a toggleGroup on toggle, deactivate the 
+				// selection mode.
+                // ///////////////////////////////////////////////
+				this.target.toolbar.items.each(function(item) {
                     if(item.toggleGroup) {
                         item.on({
                             scope: this,
                             toggle: function(tool, toggle) {
-                                if(toggle) {
-                                    //this.formPanel.selectionMode.reset();
-                                    
+                                if(toggle) {                                   
 									// Reset does not fire the select event
                                     //this.formPanel.selectionMode.fireEvent('select', this.formPanel.selectionMode);
 									this.toggleControl(null, false);									
@@ -514,6 +524,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         });
                     }
                 }, this);
+				
+				//
+				// The tool is ready for the usage.
+				// 
+				this.fireEvent("ready");
 			},
 			scope: this
 		});
@@ -557,6 +572,109 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		this.formPanel.layerCombo.fireEvent("select", this.formPanel.layerCombo, selectedLayerRecord, selectedLayerRecordIndex);
 	},
 	
+	/** public: method[reloadLayers]
+	 * 
+	 *  Public method to load the provided executioId into the Grid and follow the status. 
+     */
+	setExecutionId: function(executionId){
+		if(executionId){
+			this.showMask();
+			this.invokeClusterManager(executionId, this, function(response){
+				var element =  Ext.decode(response);
+				
+				if(!("list" in element)){
+					Ext.Msg.show({
+						title: "",
+						msg: this.errUnexistingListMsg,
+						buttons: Ext.Msg.OK,
+						icon: Ext.Msg.WARNING
+					});
+					return;
+				}
+				
+				var list = element.list;
+				var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+				
+				if((list instanceof Object) && (magicString in list)){
+					var x = list[magicString];
+   
+					var responseObj = new Object();
+					if( x && (x.length > 0) ){
+						var name = x[0].processName;
+						responseObj.name = name.namespace + name.separator + name.local;
+						responseObj.executionId = x[0].executionId;							
+						
+						var status;
+						switch(x[0].phase){
+							case 'ACCEPTED': status = 'Process Accepted'; break;
+							case 'STARTED': status = 'Process Started'; break;
+							case 'COMPLETED': status = 'Process Succeeded'; break;
+							case 'RUNNING': status = 'Process Running'; break;
+							case 'QUEUED': status = 'Process Queued'; break;
+							case 'FAILED': status = 'Process Failed'; break;
+							case 'CANCELLED': status = 'Process Cancelled'; break;
+						}
+	
+						responseObj.status = status;
+						responseObj.phase = x[0].phase;
+						responseObj.progress = x[0].progress;
+						responseObj.result = x[0].result;
+					} 
+					
+					if(responseObj.executionId){							
+						var data = {
+							name: responseObj.name || '',
+							executionId: responseObj.executionId || '',
+							executionStatus: responseObj.status || '',
+							description: responseObj.description || '',
+							phase: responseObj.phase || '',
+							progress: responseObj.progress || '',
+							result: responseObj.result || ''
+						};
+						
+						var store = this.resultPanel.getStore();
+						var record = new store.recordType(data); // create new record
+						
+						var recordIndex = store.find("executionId", data.executionId); 
+						
+						//
+						// The process record is added only if missing inside the Grid
+						//
+						if(recordIndex == -1){
+							store.add(record);
+									
+							var task2 = new Ext.util.DelayedTask(this.startRunner, this, [false]);
+							task2.delay(1500);	
+						}else{
+							Ext.Msg.show({
+								title: this.executionIdField,
+								msg: this.executionIdPresentErrorMsg,
+								buttons: Ext.Msg.OK,
+								icon: Ext.Msg.INFO
+							});
+						}	
+					}else{
+						Ext.Msg.show({
+							title: this.executionIdField,
+							msg: this.executionIdEmptyErrorMsg,
+							buttons: Ext.Msg.OK,
+							icon: Ext.Msg.INFO
+						});
+					}	
+				}else{
+					Ext.Msg.show({
+						title: this.executionIdField,
+						msg: this.executionIdInvalidErrorMsg,
+						buttons: Ext.Msg.OK,
+						icon: Ext.Msg.INFO
+					});
+				}	
+
+				this.hideMask();							
+			}); 
+		}
+	},
+	
 	/** private: method[reloadLayers]
 	 * 
 	 *  When the Layers Combo Box is expanded the function provides the Store 
@@ -566,13 +684,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var source, data = [];   
 
 		var layerSources = this.target.layerSources;
-        // //////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         // Store the checks that will be done on the layer
         // It contains check for layertype (wcs, wfs)
         // and the availability of the download process
         // It's here because the layerCombo store is
         // loaded every time is expanded
-        // //////////////////////////////////////////////
+        // /////////////////////////////////////////////////
         if(!this.layersAttributes) this.layersAttributes = {};
 
 		for (var id in layerSources) {
@@ -681,8 +799,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }
         }
         
-        // If a draw tool has been activated, deactivate other "toggleGroup" tools
-        if(toolActivated) {
+		//
+        // If a draw tool has been activated, deactivate other "toggleGroup" tools.
+        //
+		if(toolActivated) {
             this.target.toolbar.items.each(function(item) {
                 if(item.toggleGroup) item.toggle(false);
             });
@@ -734,9 +854,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					labelSeparator: ':' + '<span style="color: rgb(255, 0, 0); padding-left: 2px;">*</span>',
 					editable: true,
 					resizable: true,
-					//typeAhead: true,
-					//typeAheadDelay: 3,
-					//selectOnFocus:true,
 					allowBlank: false,
 					listeners:{
 					    scope: this,
@@ -762,14 +879,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							}		
 						},
 						beforeselect: function(combo, record, index){
-						    //this.toggleControl(null, true);
 							this.resetForm();
 						},
-						select: function(combo, record, index){
-							//this.formPanel.selectionMode.setValue(null);
-							//this.formPanel.bufferField.setValue("");
-							//this.formPanel.cutMode.setValue(true);
-							
+						select: function(combo, record, index){							
 						    // ////////////////////////////////////////
 							// Remove the previous selected layer, 
 							// from this tool if exists.
@@ -783,14 +895,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							// ////////////////////////////
 							// Add the new selected layer.
 							// ////////////////////////////
-							var addLayer = function(record, layerType) {
-								var OlMap = this.target.mapPanel.map;
-								var layer = OlMap.getLayersByName(record.data.title)[0];
-								var layerExistsInMap = layer ? true : false;
-								if(layerExistsInMap){
-									OlMap.removeLayer(layer);
-								}
-							
+							var addLayer = function(record, layerType) {							
                                 var options = {
                                     msLayerTitle: record.data.title,
                                     msLayerName: record.data.name,
@@ -845,36 +950,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							this.reloadLayers();
 						}
 					}
-				},
-				/*{
-					xtype: "combo",
-					ref: "../../crsCombo",
-					fieldLabel: this.dselCRS,
-					labelStyle: 'width: 110px;',
-					width: 140,
-					mode: 'local',
-					triggerAction: 'all',
-					store: this.crsStore,
-					displayField: 'name',
-					valueField: 'name',
-					emptyText: this.initialText,
-					editable: true,
-					resizable: true,
-					typeAhead: true,
-					typeAheadDelay: 3,
-					allowBlank: true,
-                    listeners: {
-                        scope: this,
-                        select: function() {
-                            this.spatialSettings.items.each(function(field) {
-                                field.reset();
-                            });
-                            this.toggleControl();
-                            this.updateFormStatus();
-                        }
-                    }
-				},*/	
-				{
+				}, {
 					xtype: "combo",
 					ref: "../../formatCombo",
 					fieldLabel: this.dselFormat,
@@ -910,8 +986,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     
                     this.spatialSelection.addFeatures([feature]);
                     
+					//
                     // If the geometry is point, force the user to insert a buffer
-                    if(feature.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
+                    //
+					if(feature.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
                         var buffered = OpenLayers.Geometry.Polygon.createRegularPolygon(feature.geometry, 1000, 4);
                         bounds = buffered.getBounds();
                         this.formPanel.bufferField.allowBlank = false;
@@ -967,7 +1045,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             this.updateFormStatus();
 						}
 					}
-				}, {
+				},
+				this.placeSearch,
+				{
 					xtype: "combo",
 					ref: "../../crsCombo",
 					fieldLabel: this.dselCRS,
@@ -984,20 +1064,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					resizable: true,
 					typeAhead: true,
 					typeAheadDelay: 3,
-					allowBlank: true/*,
-                    listeners: {
-                        scope: this,
-                        select: function() {
-                            this.spatialSettings.items.each(function(field) {
-                                field.reset();
-                            });
-                            this.toggleControl();
-                            this.updateFormStatus();
-                        }
-                    }*/
-				},
-                this.placeSearch,
-				{
+					allowBlank: true
+				}, {
 					xtype: "numberfield",
 					ref: "../../bufferField",
 					fieldLabel: this.bufferFieldLabel,
@@ -1010,18 +1078,24 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         keyup: function(field) {
                             var me = this, value = field.getValue();
 
+							//
                             // Whatever value, clear the timeouts
-                            if(me.bufferHideLoadMaskTimeout) clearTimeout(me.bufferHideLoadMaskTimeout);
+                            //
+							if(me.bufferHideLoadMaskTimeout) clearTimeout(me.bufferHideLoadMaskTimeout);
                             if(me.bufferTimeout) clearTimeout(me.bufferTimeout);
                                 
                             if(!value) {
+								//
                                 // If value is empty and we have an unBufferedFeature stored, replace the buffered feature with the un-buffered one. The user deleted the buffer value, so he wants the original geometry back
-                                if(me.unBufferedFeature) {
+                                //
+								if(me.unBufferedFeature) {
                                     this.spatialSelection.addFeatures([me.unBufferedFeature]);
                                 }
                             } else {
+								//
                                 // Set a timeout to hide the loadmask if the buffer request fails
-                                me.bufferHideLoadMaskTimeout = setTimeout(function() {                                    
+                                //
+								me.bufferHideLoadMaskTimeout = setTimeout(function() {                                    
                                     me.loadMask.hide();
                                 }, 30 * 1000);
 
@@ -1077,7 +1151,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     xtype: "textfield",
                     vtype: "email",
                     allowBlank: false,
-					//labelSeparator: ':' + '<span style="color: rgb(255, 0, 0); padding-left: 2px;">*</span>',
                     ref: "../../emailField",
                     fieldLabel: this.emailFieldLabel,
 					labelStyle: 'width: 110px;',
@@ -1085,9 +1158,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 }
             ]
         });
-
+		
+		//
         // Create the data store
-        var store = new Ext.data.ArrayStore({
+        //
+		var store = new Ext.data.ArrayStore({
             fields: [
                {name: 'id'},
 			   {name: 'name'},
@@ -1109,7 +1184,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				items: [
 					'->',
 					{
-						//text: this.btnRefreshTxt,
 						tooltip: this.btnRefreshTxt,
 						ref: '../refreshButton',
 						cls: 'x-btn-text-icon',
@@ -1293,99 +1367,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     width: 23,
 					scope: this,
 					handler: function(){
-						var execId = this.executionIdField.idField.getValue();
-						
-						if(execId){
-							this.showMask();
-							this.invokeClusterManager(execId, this, function(response){
-								var element =  Ext.decode(response);
-								
-								if(!("list" in element)){
-									alert(this.errUnexistingListMsg);
-									return;
-								}
-								
-								var list = element.list;
-								var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
-								
-								if((list instanceof Object) && (magicString in list)){
-									var x = list[magicString];
-				   
-									var responseObj = new Object();
-									if( x && (x.length > 0) ){
-										var name = x[0].processName;
-										responseObj.name = name.namespace + name.separator + name.local;
-										responseObj.executionId = x[0].executionId;							
-										
-										var status;
-										switch(x[0].phase){
-											case 'ACCEPTED': status = 'Process Accepted'; break;
-											case 'STARTED': status = 'Process Started'; break;
-											case 'COMPLETED': status = 'Process Succeeded'; break;
-											case 'RUNNING': status = 'Process Running'; break;
-											case 'QUEUED': status = 'Process Queued'; break;
-											case 'FAILED': status = 'Process Failed'; break;
-											case 'CANCELLED': status = 'Process Cancelled'; break;
-										}
-					
-										responseObj.status = status;
-										responseObj.phase = x[0].phase;
-										responseObj.progress = x[0].progress;
-										responseObj.result = x[0].result;
-									} 
-									
-									if(responseObj.executionId){							
-										var data = {
-											name: responseObj.name || '',
-											executionId: responseObj.executionId || '',
-											executionStatus: responseObj.status || '',
-											description: responseObj.description || '',
-											phase: responseObj.phase || '',
-											progress: responseObj.progress || '',
-											result: responseObj.result || ''
-										};
-										
-										var store = this.resultPanel.getStore();
-										var record = new store.recordType(data); // create new record
-										
-										var recordIndex = store.find("executionId", data.executionId); 
-										
-										//
-										// The process record is added only if missing inside the Grid
-										//
-										if(recordIndex == -1){
-											store.add(record);
-													
-											var task2 = new Ext.util.DelayedTask(this.startRunner, this, [false]);
-											task2.delay(1500);	
-										}else{
-											Ext.Msg.show({
-												title: this.executionIdField,
-												msg: this.executionIdPresentErrorMsg,
-												buttons: Ext.Msg.OK,
-												icon: Ext.Msg.INFO
-											});
-										}	
-									}else{
-										Ext.Msg.show({
-											title: this.executionIdField,
-											msg: this.executionIdEmptyErrorMsg,
-											buttons: Ext.Msg.OK,
-											icon: Ext.Msg.INFO
-										});
-									}	
-								}else{
-									Ext.Msg.show({
-										title: this.executionIdField,
-										msg: this.executionIdInvalidErrorMsg,
-										buttons: Ext.Msg.OK,
-										icon: Ext.Msg.INFO
-									});
-								}	
-
-								this.hideMask();							
-							}); 
-						}
+						var execId = this.executionIdField.idField.getValue();						
+						this.setExecutionId(execId);
 					}
                 },{
                     xtype: 'button',
@@ -1414,7 +1397,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var downloadForm = new Ext.form.FormPanel({
 			title: this.tabTitle,
 			region: 'center',
-			//layout: 'fit',
 			labelWidth: 80,
 			monitorValid: true,
 			items:[
@@ -1486,61 +1468,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									// //////////////////////////////////////////////////
 									downloadForm.body.dom.scrollTop = 350;
 								};
-								
 
 								this.submitNotificationsCheck('mail', requestFunction);
-
-								
-								/*/check the email notification field
-								if(!downloadForm.emailField.isValid()) {
-									return Ext.Msg.show({
-										title: this.msgEmptyEmailTitle,
-										msg: this.msgEmptyEmailMsg,
-										buttons: Ext.Msg.YESNOCANCEL,
-										fn: function(btnValue) {
-											if(btnValue == 'yes') {
-												requestFunction.call(this);
-											}
-											return;
-										},
-										scope: this,
-										animEl: 'elId',
-										icon: Ext.MessageBox.QUESTION
-									});
-								}
-								
-								// check the filter field
-								// if it's checked but invalid, ask the user to confirm the operation without the filter
-								if(this.vectorFilterContainer.checkbox.getAttribute('checked')) {
-									if(!downloadForm.filterBuilder.getFilter()) {
-										return Ext.Msg.show({
-											title: this.msgEmptyFilterTitle,
-											msg: this.msgEmptyFilterMsg,
-											buttons: Ext.Msg.YESNOCANCEL,
-											fn: function(btnValue) {
-												if(btnValue == 'yes') {
-													requestFunction.call(this);
-												}
-												return;
-											},
-											scope: this,
-											animEl: 'elId',
-											icon: Ext.MessageBox.QUESTION
-										});
-									}
-								}
-								
-								if(this.spatialSettings.checkbox.getAttribute('checked') && this.spatialSelection.features.length){
-									requestFunction.call(this);
-								}else{
-									Ext.Msg.show({
-										title: this.errMissGeomTitle,
-										msg: this.errMissGeomMsg,
-										buttons: Ext.Msg.OK,
-										icon: Ext.Msg.INFO
-									});
-									return;						
-								}*/
 							},
 							scope:this
 						}
@@ -1554,13 +1483,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
 		var panel = gxp.plugins.DownloadPanel.superclass.addOutput.call(this, downloadForm);		
 		panel.autoScroll = true;
-		
+
 		return panel;
     },
     
 	submitNotificationsCheck: function(cmp, callback){
 		if(cmp == 'mail'){
-			//check the email notification field
+			//
+			// Check the email notification field
+			//
 			if(!this.formPanel.emailField.isValid()) {
 				Ext.Msg.show({
 					title: this.msgEmptyEmailTitle,
@@ -1581,8 +1512,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		}
 		
 		if(cmp == 'filter'){
-			// check the filter field
-			// if it's checked but invalid, ask the user to confirm the operation without the filter
+			// ////////////////////////////////////////////////
+			// Check the filter field if it's checked but 
+			// invalid, ask the user to confirm the operation 
+			// without the filter.
+			// ////////////////////////////////////////////////
 			if(this.vectorFilterContainer.checkbox.getAttribute('checked') && !this.formPanel.filterBuilder.getFilter()) {
 				Ext.Msg.show({
 					title: this.msgEmptyFilterTitle,
@@ -1602,8 +1536,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			}
 		}
 		
-		if(cmp == 'spatial'){
-			if(this.spatialSettings.checkbox.getAttribute('checked') && this.spatialSelection.features.length < 1){
+		if(cmp == 'spatial'){		
+			if(this.spatialSettings.checkbox.getAttribute('checked') && 
+				this.spatialSelection.features.length < 1 &&
+				this.formPanel.selectionMode.value != null){
 				Ext.Msg.show({
 					title: this.errMissGeomTitle,
 					msg: this.errMissGeomMsg,
@@ -1731,13 +1667,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 }
             }
             
-            //var choosenProj = new OpenLayers.Projection(crs);
             var mapProj = this.target.mapPanel.map.getProjectionObject();
             
             var clone = feature.geometry.clone();
-            
-            //clone = clone.transform(mapProj, choosenProj);
-                       
+                                   
             var tf = new OpenLayers.Feature.Vector(clone);
             wkt = formatwkt.write(tf);
 			
@@ -1780,7 +1713,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var xmlFormat = new OpenLayers.Format.XML();
             var filterValue = xmlFormat.write(filterFormat.write(filter));
             // var format = new OpenLayers.Format.CQL();
-            //var filterValue = format.write(filter);
+            // var filterValue = format.write(filter);
             request.inputs['filter'] = new OpenLayers.WPSProcess.LiteralData({value: filterValue});
         }
 
@@ -1845,7 +1778,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     deleteHandler: function(grid, rowIndex, colIndex) {
 			var store = grid.getStore();
             var rec = store.getAt(rowIndex);
-            //var id = rec.get('id');
             
 			var phase = rec.get('phase');
             if(!phase || phase == 'RUNNING' || phase == 'QUEUED'){                
@@ -1969,22 +1901,26 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var element =  Ext.decode(response);
             
             if(!("list" in element)){
-                alert(this.errUnexistingListMsg);
+				Ext.Msg.show({
+					title: "",
+					msg: this.errUnexistingListMsg,
+					buttons: Ext.Msg.OK,
+					icon: Ext.Msg.ERROR
+				});
                 return;
             }
             
             var list = element.list;
             var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
             
-            if(!(magicString in list)){
-                /* // DEBUG
-                for (var i in list){
-                    console.log(i);
-                    console.log(list[i]);
-                }
-                */
-                return;
-            }
+			try{
+				if(!(magicString in list)){
+					return;
+				}
+			}catch(e){
+				console.log("Process storage return a wrong message");
+				console.log(e);
+			}
             
             var x = list[magicString];
             if( x && (x.length > 0) ){
@@ -1997,8 +1933,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			
         });        
         
-        // store pending task
-        if((!r.get('phase') || (r.get('phase') == 'RUNNING') || (r.get('phase') == 'QUEUED')) && (r.get('executionStatus') != 'Failed')){
+		//
+        // Store pending task.
+        //
+		if((!r.get('phase') || (r.get('phase') == 'RUNNING') || (r.get('phase') == 'QUEUED')) && (r.get('executionStatus') != 'Failed')){
             this.pendingRows += 1;
         }
         
@@ -2024,8 +1962,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	    //
         // Enable buffer only if layer, crs and selection mode have a value.
         //
-		if(this.formPanel.layerCombo.getValue() /*&& this.formPanel.crsCombo.getValue()*/
-            && this.formPanel.selectionMode.getValue() && this.spatialSelection.features.length > 0) {
+		if(this.formPanel.layerCombo.getValue() && 
+			this.formPanel.selectionMode.getValue() && 
+				this.spatialSelection.features.length > 0) {
 			this.formPanel.crsCombo.enable();
             this.formPanel.bufferField.enable();
 			this.formPanel.cutMode.enable();
@@ -2045,18 +1984,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		var layerRecord = layerComboStore.getAt(layerRecordIndex);
 		var isRaster = layerRecord ? layerRecord.data.wcs : false;  
 
-        if(layer /*&& this.formPanel.crsCombo.getValue()*/) {
+        if(layer) {
             this.formPanel.selectionMode.enable();
             this.formPanel.placeSearch.enable();
-			/*if(!isRaster){
-				this.formPanel.cutMode.enable();
-			}else{
-				this.formPanel.cutMode.disable();
-			}*/
         } else {
             this.formPanel.selectionMode.disable();
             this.formPanel.placeSearch.disable();
-            //this.formPanel.cutMode.disable();
         }
         
 		//
@@ -2140,10 +2073,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         wfsUrl = url + separator + 'service=WFS&request=DescribeFeatureType&version='+this.wfsDefaultVersion+'&typeName='+layer.name;
         wcsUrl = url + separator + 'service=WCS&request=DescribeCoverage&version='+this.wcsDefaultVersion+'&identifiers='+layer.name;
         
-		//
-        // DescribeCoverage request: if it returns a valid DescribeCoverage response, return the WCS layer type
-        // function is needed because we need to execute it if the DescribeFeatureType parsing fails and if the request fails
-        // 
+		// ///////////////////////////////////////////////////////
+        // DescribeCoverage request: if it returns a valid 
+		// DescribeCoverage response, return the WCS layer type
+        // function is needed because we need to execute it 
+		// if the DescribeFeatureType parsing fails and if 
+		// the request fails.
+        // ///////////////////////////////////////////////////////
 		var checkDescribeCoverage = function() {
             var requestUrl = this.isSameOrigin(wcsUrl) ? wcsUrl : this.target.proxy + encodeURIComponent(wcsUrl);
             Ext.Ajax.request({
@@ -2171,7 +2107,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         };
         
 		//
-        //DescribeFeatureType request: if it returns a valid DescribeFeatureType response, return the WFS layer type
+        // DescribeFeatureType request: if it returns a valid DescribeFeatureType response, return the WFS layer type
         //
 		var requestUrl = this.isSameOrigin(wfsUrl) ? wfsUrl : this.target.proxy + encodeURIComponent(wfsUrl);
         
@@ -2293,8 +2229,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         var pattern=/(.+:\/\/)?([^\/]+)(\/.*)*/i;
         var mHost=pattern.exec(url); 
         return (mHost[2] == location.host);
-    }
-       
+    }       
 });
 
 Ext.preg(gxp.plugins.DownloadPanel.prototype.ptype, gxp.plugins.DownloadPanel);

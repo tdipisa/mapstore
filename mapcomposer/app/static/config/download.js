@@ -129,6 +129,7 @@
 		}, {
 			"ptype": "gxp_download",
             "featureManager": "featuremanager",
+			"id": "download",
 			"outputTarget": "west",
 			"wpsUrl": "http://localhost:8282/geoserver/ows?service=WPS",
             "gazetteerUrl": "http://sditest.provinz.bz.it/proxy/names/services?service=WFS",

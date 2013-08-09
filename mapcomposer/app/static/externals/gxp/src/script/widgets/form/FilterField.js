@@ -181,7 +181,7 @@ gxp.form.FilterField = Ext.extend(Ext.form.CompositeField, {
 				xtype: "combo",
 				displayField: "name",
 				valueField: "value",
-				width: 70,
+				width: 60,
 				listWidth: 100,
 				allowBlank: false,
 				disabled: true,

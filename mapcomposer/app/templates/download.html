@@ -89,7 +89,8 @@
         // ///////////////////////////////////////////////////////////////
         var proxy; 
         var serverConfig;
-        var customConfigName;		
+        var customConfigName;	
+		var executionId;
 		
         // //////////////////////////////////////////////////
         // Parsing the request to get the parameters
@@ -133,6 +134,9 @@
 									break;
 					case "config":	
 									customConfigName = param[1];
+									break;
+					case "executionId":	
+									executionId = param[1];
 									break;
 					default :       
 									//mapIdentifier = -1;
@@ -383,12 +387,12 @@
             app = new GeoExplorer.Composer({  
                 defaultLanguage: serverConfig.defaultLanguage,		
 				geonetwork: true, // hidden/private config only used for the geonetwork use case
-                customPanels:serverConfig.customPanels,
+                customPanels: serverConfig.customPanels,
                 modified: false,
                 proxy: proxy,
 				tools: serverConfig.tools,
                 geoStoreBaseURL: serverConfig.geoStoreBase || ('http://' + window.location.host + '/geostore/rest/'),
-                portalConfig:serverConfig.portalConfig,
+                portalConfig: serverConfig.portalConfig,
                 defaultSourceType: "gxp_wmssource",
                 renderToTab : 'appTabs',
                 about: {
@@ -463,6 +467,18 @@
 						app.viewMetadata(gnBaseUrl + "srv/" + code + "/", uuid, title);
 						appTabs.setActiveTab(2);
 					}
+					
+					if(executionId){
+						var downloadTool = app.tools["download"];	
+						downloadTool.on("ready", function(){
+							appTabs.setActiveTab(1);	
+
+							var westPanel = Ext.getCmp("west");
+							westPanel.setActiveTab(downloadTool.formPanel);		
+							
+							downloadTool.setExecutionId(executionId);
+						});
+					}
                 }
             });
 			
@@ -506,7 +522,7 @@
 	    };
 
 	    Ext.Ajax.request({
-			  url: customConfigName ? "config/" + customConfigName + ".js"  : "config/geonetwork.js",
+			  url: customConfigName ? "config/" + customConfigName + ".js"  : "config/download.js",
 			  method: 'GET',
 			  success: function(response, opts){          
 				  
