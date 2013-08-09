@@ -336,6 +336,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
 	loadMaskMsg: "Please wait...",
 	
+	requiredFieldsLabel: "* These fields are mandatory for the download process.",
+	
     /** private: method[constructor]
      */
     constructor: function(config) {
@@ -617,7 +619,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
 						responseObj.status = status;
 						responseObj.phase = x[0].phase;
-						responseObj.progress = x[0].progress;
+						responseObj.progress = x[0].progress  + "%";
 						responseObj.result = x[0].result;
 					} 
 					
@@ -851,7 +853,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					store: this.layerStore,
 					displayField: 'name',
 					emptyText: this.initialText,
-					labelSeparator: ':' + '<span style="color: rgb(255, 0, 0); padding-left: 2px;">*</span>',
+					labelSeparator: ':' + '<span style="color: #918E8F; padding-left: 2px;">*</span>',
 					editable: true,
 					resizable: true,
 					allowBlank: false,
@@ -964,8 +966,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					emptyText: this.initialText,
 					editable: false,
 					resizable: true,
-					labelSeparator: ':' + '<span style="color: rgb(255, 0, 0); padding-left: 2px;">*</span>',
+					labelSeparator: ':' + '<span style="color: #918E8F; padding-left: 2px;">*</span>',
 					allowBlank: false					
+				}, {
+					xtype: "label",
+					cls: "labelField",
+					text: this.requiredFieldsLabel
 				}
 			]
 		});
@@ -1187,7 +1193,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						tooltip: this.btnRefreshTxt,
 						ref: '../refreshButton',
 						cls: 'x-btn-text-icon',
-						icon :'theme/app/img/silk/arrow_refresh.png',
+						icon : 'theme/app/img/silk/arrow_refresh.png',
 						scope: this,
 						handler: function(){                           
 							// Reset pending

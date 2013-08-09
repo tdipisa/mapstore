@@ -635,7 +635,8 @@ GeoExt.Lang.add("it", {
 		describeProcessErrorMsg: "Non si può leggere la risposta del server",	
 		bufferFieldLabel: "Buffer (m)",
 		downloadFormFieldSetTitle: "Form di Download",
-		loadMaskMsg: "Attendere prego..."
+		loadMaskMsg: "Attendere prego...",
+		requiredFieldsLabel: "* Dati necessari per il processo di download."
     }
 	
 });
