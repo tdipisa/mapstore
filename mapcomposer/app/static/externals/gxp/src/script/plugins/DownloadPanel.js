@@ -359,7 +359,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	init: function(target) {
 		target.on({
 			'ready' : function(){
-			    this.addLayerTool = app.tools["addlayer"];
+			    this.addLayerTool = this.target.tools["addlayer"];
 				this.addLayerTool.on({
 					'ready' : function(layerRecord){
 						this.selectedLayer = layerRecord;
@@ -781,7 +781,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			if(this.spatialSelection)
 				this.spatialSelection.removeAllFeatures();
 			this.formPanel.bufferField.reset();
-			this.formPanel.crsCombo.reset();
+			//this.formPanel.crsCombo.reset();
 
 			if(value == 'place') {
 				this.formPanel.placeSearch.show();
@@ -1025,6 +1025,24 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			},
 			items: [
 				{
+					xtype: "combo",
+					ref: "../../crsCombo",
+					fieldLabel: this.dselCRS,
+					disabled: false,
+					labelStyle: 'width: 110px;',
+					width: 140,
+					mode: 'local',
+					triggerAction: 'all',
+					store: this.crsStore,
+					displayField: 'name',
+					valueField: 'name',
+					emptyText: this.initialText,
+					editable: true,
+					resizable: true,
+					typeAhead: true,
+					typeAheadDelay: 3,
+					allowBlank: true
+				}, {
 					xtype: 'combo',
 					ref: "../../selectionMode",
 					fieldLabel: this.settingSel,
@@ -1054,24 +1072,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				},
 				this.placeSearch,
 				{
-					xtype: "combo",
-					ref: "../../crsCombo",
-					fieldLabel: this.dselCRS,
-					disabled: false,
-					labelStyle: 'width: 110px;',
-					width: 140,
-					mode: 'local',
-					triggerAction: 'all',
-					store: this.crsStore,
-					displayField: 'name',
-					valueField: 'name',
-					emptyText: this.initialText,
-					editable: true,
-					resizable: true,
-					typeAhead: true,
-					typeAheadDelay: 3,
-					allowBlank: true
-				}, {
 					xtype: "numberfield",
 					ref: "../../bufferField",
 					fieldLabel: this.bufferFieldLabel,
