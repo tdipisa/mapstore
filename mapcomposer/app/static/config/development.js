@@ -94,7 +94,7 @@
             "height": 500,
             "region": "east",
             "layout": "fit",
-            "collapsed": true,
+            "collapsed": false,
             "collapsible": true,
             "header": true
         }
