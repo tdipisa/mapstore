@@ -247,6 +247,15 @@
 					  "distanceUnits": "m"
 				}
 			}			
+		}, {
+			"actions": ["-"], 
+			"actionTarget": "paneltbar"
+		}, {
+			"ptype": "gxp_styler",
+			"actionTarget": "paneltbar",
+			"sameOriginStyling": false,
+			"width": 500,
+			"index": 29
 		}
 	]
 }
