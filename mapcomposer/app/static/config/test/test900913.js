@@ -109,6 +109,7 @@
 		{
 			"ptype": "gxp_metadataexplorer",
 			"id": "metadataexplorer",
+			"title": "Metadata Explorer",
             "outputTarget": "south",
             "saveState":true,
             "cswconfig": {
