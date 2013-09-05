@@ -21,8 +21,8 @@ GeoExt.Lang.add("de", {
         descriptionText: "Beschreibung",
         contactText: "Kontakte",
         aboutThisMapText: "Apropos dieser Karte",
-        searchTabTitle : "Portal",
-        viewTabTitle : "Ansicht",
+        searchTabTitle : "Katalog",
+        viewTabTitle : "Karte und Download",
 		markerPopupTitle: "Details",
 		mainLoadingMask: "Bitte warten ..."
     },
@@ -560,7 +560,7 @@ GeoExt.Lang.add("de", {
 
     "gxp.plugins.DownloadPanel.prototype":{    
         initialText: "Auswählen ...",	
-        tabTitle: "Download",    
+        tabTitle: "Interaktiver Download",    
         dselTitle: "Daten Auswählen",
         dselLayer: "Layer",
         dselCRS: "Koordinatensystem",

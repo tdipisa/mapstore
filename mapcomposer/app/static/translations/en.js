@@ -26,8 +26,8 @@ GeoExt.Lang.add("en", {
         aboutThisMapText: "About this Map",
 		resetButtonTooltip: "Reset Page",
 		helpButtonTooltip: "Help",
-        searchTabTitle : "Search",
-        viewTabTitle : "View",
+        searchTabTitle : "Catalog",
+        viewTabTitle : "Map and Download",
         portalTabTitle : "Portal",
 		markerPopupTitle: "Details",
 		mainLoadingMask: "Please wait, loading..."

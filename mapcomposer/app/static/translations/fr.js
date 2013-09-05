@@ -27,8 +27,8 @@ GeoExt.Lang.add("fr", {
         aboutThisMapText: "À propos de cette carte",
 		resetButtonTooltip: "Réinitialiser la Page",
 		helpButtonTooltip: "Aide",
-        searchTabTitle : "Chercher",
-        viewTabTitle : "Vue",
+        searchTabTitle : "Catalogue",
+        viewTabTitle : "Carte et Téléchargement",
         portalTabTitle : "Portail",
 		markerPopupTitle: "Détails",
 		mainLoadingMask: "S'il vous plaît attendre ..."
