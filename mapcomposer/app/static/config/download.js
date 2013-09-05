@@ -1,13 +1,14 @@
 {
-   "geoStoreBase":"http://localhost:8282/geostore/rest/",
+   "geoStoreBase":"http://localhost:8080/geostore/rest/",
    "gnBaseUrl": "http://84.33.2.30/geonetworkbz/",
-   "proxy":"/http_proxy/proxy/?url=",
+   "proxy":"/proxy/?url=",
    "defaultLanguage": "it",
    "tab": true,
    "gsSources":{ 
    		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://localhost:8282/geoserver/ows",
+			"url": "http://192.168.1.103:8088/geoserver/ows",
+			"_url": "http://84.33.2.30/geoserverbz/ows",
 			"version":"1.1.1",
             "layerBaseParams": { 
 			    "FORMAT":"image/png8",
@@ -131,15 +132,19 @@
             "featureManager": "featuremanager",
 			"id": "download",
 			"outputTarget": "west",
-			"wpsUrl": "http://localhost:8282/geoserver/ows?service=WPS",
+            "wpsUrl": "http://192.168.1.103:8088/geoserver/ows?service=WPS",
+            "_wpsUrl": "http://84.33.2.30/geoserverbz/ows?service=WPS",
             "gazetteerUrl": "http://sditest.provinz.bz.it/proxy/names/services?service=WFS",
 			"sridLinkTpl": "http://spatialreference.org/ref/#AUTH#/#SRID#/",
 			"formats": {
 				"wfs":[
-					["shp", "ESRI Shapefile", "wfs", "zip"],
+					["application/zip", "ESRI Shapefile", "wfs", "zip"],
 					["application/dxf", "DXF", "wfs", "dxf"],
-					["application/gml-2.1.2", "GML2", "wfs", "gml"],
-					["application/gml-3.1.1", "GML3", "wfs", "gml"]
+					["text/xml; subtype=wfs-collection/1.0", "GML2", "wfs", "gml"],
+					["text/xml; subtype=wfs-collection/1.1", "GML3", "wfs", "gml"],
+					["application/vnd.google-earth.kml+xml", "KML", "wfs", "kml"],
+					["application/gpx+xml", "GPX", "wfs", "gpx"],
+					["application/dxf", "DXF", "wfs", "dxf"]
 				],
 				"wcs":[
 					["image/tiff", "GeoTIFF", "wcs", "tif"]
