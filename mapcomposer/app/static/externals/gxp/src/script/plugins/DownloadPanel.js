@@ -552,7 +552,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		return newURL;
 	},
 	
-	/** private: method[reloadLayers]
+	/** private: method[setLayer]
 	 * 
 	 *  Private method to select a layer from the layer from external APIs. 
      */
@@ -574,7 +574,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		this.formPanel.layerCombo.fireEvent("select", this.formPanel.layerCombo, selectedLayerRecord, selectedLayerRecordIndex);
 	},
 	
-	/** public: method[reloadLayers]
+	/** public: method[setExecutionId]
 	 * 
 	 *  Public method to load the provided executioId into the Grid and follow the status. 
      */
@@ -583,7 +583,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			this.showMask();
 			this.invokeClusterManager(executionId, this, function(response){
 				var element =  Ext.decode(response);
-				
+				/*
 				if(!("list" in element)){
 					Ext.Msg.show({
 						title: "",
@@ -595,19 +595,20 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				}
 				
 				var list = element.list;
-				var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+				*/
+				var magicString = 'org.geoserver.wps.gs.ClusterManagerProcess_-ExecutionStatusExt';
 				
-				if((list instanceof Object) && (magicString in list)){
-					var x = list[magicString];
+				if((element instanceof Object) && (magicString in element)){
+					var x = element[magicString];
    
 					var responseObj = new Object();
-					if( x && (x.length > 0) ){
-						var name = x[0].processName;
+					if( x ){
+						var name = x.processName;
 						responseObj.name = name.namespace + name.separator + name.local;
-						responseObj.executionId = x[0].executionId;							
+						responseObj.executionId = x.executionId;							
 						
 						var status;
-						switch(x[0].phase){
+						switch(x.phase){
 							case 'ACCEPTED': status = 'Process Accepted'; break;
 							case 'STARTED': status = 'Process Started'; break;
 							case 'COMPLETED': status = 'Process Succeeded'; break;
@@ -618,9 +619,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}
 	
 						responseObj.status = status;
-						responseObj.phase = x[0].phase;
-						responseObj.progress = x[0].progress  + "%";
-						responseObj.result = x[0].result;
+						responseObj.phase = x.phase;
+						responseObj.progress = x.progress  + "%";
+						responseObj.result = x.result;
 					} 
 					
 					if(responseObj.executionId){							
@@ -1344,7 +1345,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								return '<a href="' + val + '" target="_blank" /><img src="theme/app/img/download.png" /></a>';
 							}else{
 							    var message = mydlp.wpsErrorMsg;
-							    var html = '<img src="theme/app/img/download.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>'; 								
+							    var html = '<img src="theme/app/img/error.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>'; 								
 								return html;
 							}
 						}
@@ -1905,7 +1906,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
 		this.invokeClusterManager(r.get('executionId'), this, function(response){
             var element =  Ext.decode(response);
-            
+            /*
             if(!("list" in element)){
 				Ext.Msg.show({
 					title: "",
@@ -1916,11 +1917,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 return;
             }
             
-            var list = element.list;
-            var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+            var list = element.list;*/
+            var magicString = 'org.geoserver.wps.gs.ClusterManagerProcess_-ExecutionStatusExt';
             
 			try{
-				if(!(magicString in list)){
+				if(!(magicString in element)){
 					return;
 				}
 			}catch(e){
@@ -1928,11 +1929,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				console.log(e);
 			}
             
-            var x = list[magicString];
-            if( x && (x.length > 0) ){
-                r.set('phase', x[0].phase);
-                r.set('progress', x[0].progress + "%");
-                r.set('result', x[0].result);
+            var x = element[magicString];
+            if( x ){
+                r.set('phase', x.phase);
+                r.set('progress', x.progress + "%");
+                r.set('result', x.result);
             } 
 			
 			//this.wpsClusterManager._updateInstance(r);
@@ -2051,7 +2052,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }
             
             this.hideMask();
-        }, this)
+        }, this);
     },
     
     /**
