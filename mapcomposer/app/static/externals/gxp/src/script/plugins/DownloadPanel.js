@@ -1752,7 +1752,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var filterValue = xmlFormat.write(filterFormat.write(filter));
             // var format = new OpenLayers.Format.CQL();
             // var filterValue = format.write(filter);
-            request.inputs['filter'] = new OpenLayers.WPSProcess.LiteralData({value: filterValue});
+            request.inputs['filter'] = new OpenLayers.WPSProcess.ComplexData({
+                                                value: filterValue,
+                                                mimeType: "text/xml"
+                                        });
         }
 
         if(dform.emailField.isValid() && email != ''){
