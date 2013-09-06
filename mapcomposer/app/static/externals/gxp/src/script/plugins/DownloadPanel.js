@@ -266,6 +266,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
     msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",
     
+    msgWrongCRSTitle: "Projection Mismatch",
+    
+    msgWrongCRSMsg: "The selected projection will be overridden by the Output Format specifications. Continue anyway?",
+    
     msgTooltipPending: 'Pending',
 	
     msgTooltipSuccess: 'Success',
@@ -1531,7 +1535,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					buttons: Ext.Msg.YESNO,
 					fn: function(btnValue) {
 						if(btnValue == 'yes') {
-							this.submitNotificationsCheck('spatial', callback);
+							this.submitNotificationsCheck('CRS', callback);
 						}
 					},
 					scope: this,
@@ -1539,10 +1543,37 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					icon: Ext.MessageBox.QUESTION
 				});
 			}else{
-				this.submitNotificationsCheck('spatial', callback);
+				this.submitNotificationsCheck('CRS', callback);
 			}
 		}
 		
+        if(cmp == 'CRS'){
+            // ////////////////////////////////////////////////
+            // Check the filter field if it's checked but 
+            // the selected CRS is not compatible with the output format,
+            // ask the user to confirm the operation without the filter.
+            // ////////////////////////////////////////////////
+            if(this.spatialSettings.checkbox.getAttribute('checked') && 
+                (this.formPanel.formatCombo.getValue() == "application/vnd.google-earth.kml+xml" ||  this.formPanel.formatCombo.getValue() == "application/gpx+xml") &&
+                this.formPanel.crsCombo.getValue() != "EPSG:4326" ) {
+                Ext.Msg.show({
+                    title: this.msgWrongCRSTitle,
+                    msg: this.msgWrongCRSMsg,
+                    buttons: Ext.Msg.YESNO,
+                    fn: function(btnValue) {
+                        if(btnValue == 'yes') {
+                            this.submitNotificationsCheck('spatial', callback);
+                        }
+                    },
+                    scope: this,
+                    animEl: 'elId',
+                    icon: Ext.MessageBox.QUESTION
+                });
+            }else{
+                this.submitNotificationsCheck('spatial', callback);
+            }
+        }
+
 		if(cmp == 'spatial'){		
 			if(this.spatialSettings.checkbox.getAttribute('checked') && 
 				this.spatialSelection.features.length < 1 &&

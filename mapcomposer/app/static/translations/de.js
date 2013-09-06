@@ -607,6 +607,8 @@ GeoExt.Lang.add("de", {
         msgEmptyEmailMsg: "Die E-Mail-Benachrichtigung ist aktiviert, aber das Feld E-Mail ist leer. Wollen Sie ohne Benachrichtigung fortfahren?",        
         msgEmptyFilterTitle: "Das Feld Filter ist leer",
         msgEmptyFilterMsg: "Der Filter ist aktiviert, aber es wurden keine Filterkriterien festgelegt. Wollen Sie ohne Filter fortfahren?",    
+        msgWrongCRSTitle: "Projection Mismatch",
+        msgWrongCRSMsg: "Die gewählte Projektion wird überschrieben durch das Ausgabeformat Spezifikationen. Trotzdem fortfahren?",
         msgTooltipPending: "Ausstehend",
         msgTooltipSuccess: "Abgeschlossen",
         msgTooltipExecuting: "in Bearbeitung",

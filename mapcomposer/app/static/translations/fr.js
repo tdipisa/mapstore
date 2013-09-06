@@ -572,6 +572,8 @@ GeoExt.Lang.add("fr", {
         msgEmptyEmailMsg: "La notification par courrier électronique est activée, mais le champ est vide. Continuer sans notification?",        
         msgEmptyFilterTitle: "Champ de filtre vide",
         msgEmptyFilterMsg: "Le filtre est activé, mais il n'ya pas de filtre Internet. Continuer sans filtre?", 
+        msgWrongCRSTitle: "Incompatibilité de projection",
+        msgWrongCRSMsg: "La projection sélectionnée sera remplacée par les spécifications du format de sortie. Continuer malgré tout?",
         msgTooltipPending: "En attendant",
         msgTooltipSuccess: "Compléter",
         msgTooltipExecuting: "Courir",

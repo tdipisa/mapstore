@@ -567,6 +567,8 @@ GeoExt.Lang.add("en", {
         msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",        
         msgEmptyFilterTitle: "Empty filter",
         msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",        
+        msgWrongCRSTitle: "Projection Mismatch",
+        msgWrongCRSMsg: "The selected projection will be overridden by the Output Format specifications. Continue anyway?",
         msgTooltipPending: "Pending",
         msgTooltipSuccess: "Success",
         msgTooltipExecuting: "Executing",
