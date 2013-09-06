@@ -981,7 +981,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			]
 		});
         
-        this.placeSearch = new gxp.GazetteerCombobox(Ext.apply(this.gazetteerConfig, {
+        this.placeSearch = new gxp.GazetteerCombobox(Ext.apply({
             xtype: 'gazetteercombobox',
             fieldLabel: this.placeSearchLabel,
 			labelStyle: 'width: 110px;',
@@ -1011,7 +1011,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     this.target.mapPanel.map.zoomToExtent(bounds);
                 }
             }
-        }));
+        }, this.gazetteerConfig));
 
 		this.spatialSettings = new Ext.form.FieldSet({
 			title: this.settingTitle,
