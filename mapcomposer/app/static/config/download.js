@@ -123,6 +123,12 @@
 			"outputTarget": "paneltbar",
 			"index": 23
 		}, {
+             "ptype": "gxp_importexport",
+             "service": "http://localhost:8080/servicebox/",
+             "types": ["map","kml/kmz"],
+             "actionTarget": "paneltbar",
+             "index": 28
+         }, {
 			"ptype": "gxp_addlayer",
 			"showCapabilitiesGrid": true,
 			"id": "addlayer",
@@ -143,8 +149,7 @@
 					["text/xml; subtype=wfs-collection/1.0", "GML2", "wfs", "gml"],
 					["text/xml; subtype=wfs-collection/1.1", "GML3", "wfs", "gml"],
 					["application/vnd.google-earth.kml+xml", "KML", "wfs", "kml"],
-					["application/gpx+xml", "GPX", "wfs", "gpx"],
-					["application/dxf", "DXF", "wfs", "dxf"]
+					["application/gpx+xml", "GPX", "wfs", "gpx"]
 				],
 				"wcs":[
 					["image/tiff", "GeoTIFF", "wcs", "tif"]
