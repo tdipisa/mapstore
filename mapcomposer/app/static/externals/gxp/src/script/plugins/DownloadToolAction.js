@@ -101,8 +101,9 @@ gxp.plugins.DownloadToolAction = Ext.extend(gxp.plugins.Tool, {
 
         this.target.on("layerselectionchange", function(record) {
             selectedLayer = record.get('group') === 'background' ? null : (record.get('name') ? record : null);
+            var hasKeywords = record.get('keywords') && (record.get('keywords').length > 0);
             downloadToolAction.setDisabled(
-                 !selectedLayer || this.target.mapPanel.layers.getCount() <= 1 || !record
+                 !selectedLayer || this.target.mapPanel.layers.getCount() <= 1 || !record || !hasKeywords
             );
         }, this);
         
@@ -110,7 +111,7 @@ gxp.plugins.DownloadToolAction = Ext.extend(gxp.plugins.Tool, {
             downloadToolAction.setDisabled(
                 !selectedLayer || store.getCount() <= 1
             );
-        }
+        };
         
         this.target.mapPanel.layers.on({
             "add": enforceOne,
