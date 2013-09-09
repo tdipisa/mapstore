@@ -559,6 +559,7 @@ GeoExt.Lang.add("it", {
         dselLayer: "Layer",
         dselCRS: "Sistema di Riferimento",
         dselFormat: "Formato",        
+        infoBtnTooltip: "Info sul sistema di riferimento",
         settingTitle: "Impostazioni Avanzate",
         settingSel: "Metodo di Selezione",
         settingCut: "Metodo di Ritaglio",        
