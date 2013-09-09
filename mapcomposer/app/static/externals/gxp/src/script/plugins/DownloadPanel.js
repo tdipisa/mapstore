@@ -570,6 +570,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	 *  Private method to select a layer from the layer from external APIs. 
      */
 	setLayer: function(record){
+	    this.resetForm();
+		
 		this.reloadLayers();
 		var layerName = record.get("name");
 		
@@ -1805,9 +1807,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             // var format = new OpenLayers.Format.CQL();
             // var filterValue = format.write(filter);
             request.inputs['filter'] = new OpenLayers.WPSProcess.ComplexData({
-                                                value: filterValue,
-                                                mimeType: "text/xml"
-                                        });
+					value: filterValue,
+					mimeType: "text/xml; subtype=filter/1.1"
+			});
         }
 
         if(dform.emailField.isValid() && email != ''){
