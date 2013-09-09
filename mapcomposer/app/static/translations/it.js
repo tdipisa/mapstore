@@ -603,7 +603,7 @@ GeoExt.Lang.add("it", {
         msgEmptyFilterTitle: "Campo filtro vuoto",
         msgEmptyFilterMsg: "Il filtro è abilitato, ma non è stato specificato alcun filtro. Continuare senza filtro?",    
         msgWrongCRSTitle: "Differenza di Proiezione",
-        msgWrongCRSMsg: "La proiezione selezionata non è compatibile con il formato di output scelto e sarà ignorata. Continuare?",
+        msgWrongCRSMsg: "La proiezione selezionata non è compatibile con il formato di output scelto. La proiezione sarà EPSG:4326. Continuare?",
         msgTooltipPending: "In attesa",
         msgTooltipSuccess: "Completa",
         msgTooltipExecuting: "In esecuzione",

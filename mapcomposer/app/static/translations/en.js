@@ -569,7 +569,7 @@ GeoExt.Lang.add("en", {
         msgEmptyFilterTitle: "Empty filter",
         msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",        
         msgWrongCRSTitle: "Projection Mismatch",
-        msgWrongCRSMsg: "The selected projection will be overridden by the Output Format specifications. Continue anyway?",
+        msgWrongCRSMsg: "The selected projection will be overridden by the Output Format specifications (EPSG:4326). Continue anyway?",
         msgTooltipPending: "Pending",
         msgTooltipSuccess: "Success",
         msgTooltipExecuting: "Executing",
