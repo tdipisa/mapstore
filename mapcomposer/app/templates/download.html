@@ -405,7 +405,8 @@
 				//showGraticule: false,  //Set showGraticule property to true only if the map projection is EPSG:4326 
                 georeferences: georeferences_data,
                 map: serverConfig.map,
-				customTools: serverConfig.customTools
+				customTools: serverConfig.customTools, 
+				multipleToolInstances: true,
             }, mapIdentifier, authorization, fullScreen);   
             
             app.on({
@@ -487,8 +488,9 @@
 			*
 			* TODO: Check the API using a MapServer URL as wmsURL.
 			*/
-			addMSLayer = function(msLayerTitle, msLayerName, wmsURL, gnUrl, enableViewTab, msLayerUUID, gnLangStr){
-				var addLayer = app.tools["addlayer"];
+			addMSLayer = function(msLayerTitle, msLayerName, wmsURL, gnUrl, enableViewTab, msLayerUUID, gnLangStr, interactiveDownload){
+			    var t = app;
+				var addLayer = t.tools["addlayerbis"];
 				
 				var options = {
 					msLayerTitle: msLayerTitle,
@@ -500,9 +502,49 @@
 					gnLangStr: gnLangStr
 				};
 				
+				var downloadTool = app.tools["download"];
+				if(interactiveDownload === 'true'){
+					var westPanel = Ext.getCmp('west');
+					westPanel.setActiveTab(downloadTool.formPanel);			
+				}
+
+				var listener = function(layerRecord){
+					if(interactiveDownload === 'true'){
+						// //////////////////////////////////////////////////
+						// Remove the layer from the map. The layer will be 
+						// re-added to the map from the Downlaod tool. 
+						// In this way the user can view the selected layer
+						// on top.
+						// //////////////////////////////////////////////////
+						
+						var OlMap = app.mapPanel.map;
+						var layer = OlMap.getLayersByName(layerRecord.data.title)[0];
+						var layerExistsInMap = layer ? true : false;
+						if(layerExistsInMap){
+							OlMap.removeLayer(layer);
+						}
+						
+						//
+						// Show the Download Panel Tool 
+						//
+						var westPanel = Ext.getCmp("west");
+						westPanel.setActiveTab(downloadTool.formPanel);
+						
+						downloadTool.setLayer(layerRecord, true);
+					}	
+					
+					addLayer.removeListener('ready', listener, this);
+				};
+				
+				addLayer.on({
+					'ready' : listener,
+					scope: this
+				});
+				
 				addLayer.addLayer(
 					options
 				);
+				
 			};
 			
 			/**
@@ -511,7 +553,7 @@
 			* TODO: Check the API using a MapServer URL from GeoNetwork.
 			*/
 			addMSSource = function(wmsURL){
-				var addLayer = app.tools["addlayer"];
+				var addLayer = app.tools["addlayerbis"];
 				
 				appTabs.setActiveTab(1);
 				

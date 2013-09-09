@@ -1,13 +1,13 @@
 {
    "geoStoreBase":"http://localhost:8282/geostore/rest/",
-   "gnBaseUrl": "http://84.33.2.30/geonetworkbz/",
+   "gnBaseUrl": "http://localhost:8282/geonetwork/",
    "proxy":"/http_proxy/proxy/?url=",
    "defaultLanguage": "it",
    "tab": true,
    "gsSources":{ 
    		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://localhost:8282/geoserver/ows",
+			"url": "http://localhost:8282/geoserver/wms",
 			"version":"1.1.1",
             "layerBaseParams": { 
 			    "FORMAT":"image/png8",
@@ -102,7 +102,7 @@
 			"saveState": true,
             "cswconfig": {
                 "catalogs": [
-                        {"name": "Bozen Portal", "url": "http://sdi.provincia.bz.it/geonetwork/srv/it/csw", "description": "GeoPortale della Provincia di Bolzano"}
+                        {"name": "Bozen Portal", "url": "http://localhost:8282/geonetwork/srv/it/csw", "description": "GeoPortale della Provincia di Bolzano"}
                     ],
                 "dcProperty": "title",
                 "initialBBox": {
@@ -127,8 +127,16 @@
 			"id": "addlayer",
 			"useEvents": true
 		}, {
+			"ptype": "gxp_addlayer",
+			"showCapabilitiesGrid": true,
+			"id": "addlayerbis",
+			"forceMultiple": true,
+			"useEvents": true
+		}, {
 			"ptype": "gxp_download",
             "featureManager": "featuremanager",
+			"readOnlyLayerSelection": true,
+			"removePreviousLayerOnSelection": false,
 			"id": "download",
 			"outputTarget": "west",
 			"wpsUrl": "http://localhost:8282/geoserver/ows?service=WPS",

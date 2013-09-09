@@ -128,6 +128,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
      */
 	selectedLayer: null,
 	
+	/** api: config[removePreviousLayerOnSelection]
+     *  ``Object``
+     */
+	removePreviousLayerOnSelection: true,
+	
 	/** api: config[formPanel]
      *  ``Object``
      */
@@ -337,6 +342,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	loadMaskMsg: "Please wait...",
 	
 	requiredFieldsLabel: "* These fields are mandatory for the download process.",
+	
+	readOnlyLayerSelection: false,
 	
     /** private: method[constructor]
      */
@@ -563,8 +570,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	    var layerTree = Ext.getCmp("layertree");
 		layerTree.contextMenu.hide();
 		
-		var westPanel = Ext.getCmp("west");
-		westPanel.setActiveTab(this.formPanel);
+		//var westPanel = Ext.getCmp("west");
+		//westPanel.setActiveTab(this.formPanel);
 	
 		this.formPanel.layerCombo.setValue(layerName);
 		
@@ -574,7 +581,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		this.formPanel.layerCombo.fireEvent("select", this.formPanel.layerCombo, selectedLayerRecord, selectedLayerRecordIndex);
 	},
 	
-	/** public: method[reloadLayers]
+	/** public: method[setExecutionId]
 	 * 
 	 *  Public method to load the provided executioId into the Grid and follow the status. 
      */
@@ -852,11 +859,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					triggerAction: 'all',
 					store: this.layerStore,
 					displayField: 'name',
-					emptyText: this.initialText,
+					emptyText: this.readOnlyLayerSelection === true ? "" : this.initialText,
 					labelSeparator: ':' + '<span style="color: #918E8F; padding-left: 2px;">*</span>',
 					editable: true,
 					resizable: true,
 					allowBlank: false,
+					readOnly: this.readOnlyLayerSelection, 
 					listeners:{
 					    scope: this,
 						keyup : function(field){
@@ -888,7 +896,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							// Remove the previous selected layer, 
 							// from this tool if exists.
 							// ////////////////////////////////////////
-							if(this.selectedLayer){
+							if(this.selectedLayer && this.removePreviousLayerOnSelection){
 								this.target.mapPanel.layers.remove(this.selectedLayer);
 							}
                             
@@ -1391,6 +1399,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	    
 	    this.resultFieldSet = new Ext.form.FieldSet({
             title: this.processExecutions,
+			autoHeight: 342,
 			items: [
 			    this.executionIdField,
 				this.resultPanel
@@ -1428,7 +1437,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								// Remove the previous selected layer, 
 								// from this tool if exists.
 								// ////////////////////////////////////////
-								if(this.selectedLayer){
+								if(this.selectedLayer && this.removePreviousLayerOnSelection){
 									this.target.mapPanel.layers.remove(this.selectedLayer);
 								}
 								

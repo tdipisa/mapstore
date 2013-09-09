@@ -77,6 +77,20 @@ gxp.plugins.DownloadToolAction = Ext.extend(gxp.plugins.Tool, {
 						OlMap.removeLayer(layer);
 					}
 								
+					var ownerCt = this.downloadTool.formPanel.ownerCt;
+					
+					if(ownerCt){
+						if(ownerCt instanceof Ext.TabPanel){
+							ownerCt.setActiveTab(this.downloadTool.formPanel);
+						}
+						
+						if(ownerCt.collapsed){
+							ownerCt.expand();
+						}
+					}else if(this.downloadTool.formPanel.collapsed){
+						this.downloadTool.formPanel.expand();
+					}
+					
 					this.downloadTool.setLayer(record);
                 }
             },
