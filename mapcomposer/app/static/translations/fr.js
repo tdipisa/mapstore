@@ -574,7 +574,7 @@ GeoExt.Lang.add("fr", {
         msgEmptyFilterTitle: "Champ de filtre vide",
         msgEmptyFilterMsg: "Le filtre est activé, mais il n'ya pas de filtre Internet. Continuer sans filtre?", 
         msgWrongCRSTitle: "Incompatibilité de projection",
-        msgWrongCRSMsg: "La projection sélectionnée sera remplacée par les spécifications du format de sortie. Continuer malgré tout?",
+        msgWrongCRSMsg: "La projection sélectionnée sera remplacée par les spécifications du format de sortie (EPSG:4326). Continuer malgré tout?",
         msgTooltipPending: "En attendant",
         msgTooltipSuccess: "Compléter",
         msgTooltipExecuting: "Courir",
