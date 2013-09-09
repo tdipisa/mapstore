@@ -271,6 +271,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
     msgEmptyFilterMsg: "The filter is enabled, but the filter is not filled. Continue wihout filter?",
     
+    msgWrongCRSTitle: "Projection Mismatch",
+    
+    msgWrongCRSMsg: "The selected projection will be overridden by the Output Format specifications. Continue anyway?",
+    
     msgTooltipPending: 'Pending',
 	
     msgTooltipSuccess: 'Success',
@@ -559,7 +563,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		return newURL;
 	},
 	
-	/** private: method[reloadLayers]
+	/** private: method[setLayer]
 	 * 
 	 *  Private method to select a layer from the layer from external APIs. 
      */
@@ -590,7 +594,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			this.showMask();
 			this.invokeClusterManager(executionId, this, function(response){
 				var element =  Ext.decode(response);
-				
+				/*
 				if(!("list" in element)){
 					Ext.Msg.show({
 						title: "",
@@ -602,19 +606,20 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				}
 				
 				var list = element.list;
-				var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+				*/
+				var magicString = 'org.geoserver.wps.gs.ClusterManagerProcess_-ExecutionStatusExt';
 				
-				if((list instanceof Object) && (magicString in list)){
-					var x = list[magicString];
+				if((element instanceof Object) && (magicString in element)){
+					var x = element[magicString];
    
 					var responseObj = new Object();
-					if( x && (x.length > 0) ){
-						var name = x[0].processName;
+					if( x ){
+						var name = x.processName;
 						responseObj.name = name.namespace + name.separator + name.local;
-						responseObj.executionId = x[0].executionId;							
+						responseObj.executionId = x.executionId;							
 						
 						var status;
-						switch(x[0].phase){
+						switch(x.phase){
 							case 'ACCEPTED': status = 'Process Accepted'; break;
 							case 'STARTED': status = 'Process Started'; break;
 							case 'COMPLETED': status = 'Process Succeeded'; break;
@@ -625,9 +630,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						}
 	
 						responseObj.status = status;
-						responseObj.phase = x[0].phase;
-						responseObj.progress = x[0].progress  + "%";
-						responseObj.result = x[0].result;
+						responseObj.phase = x.phase;
+						responseObj.progress = x.progress  + "%";
+						responseObj.result = x.result;
 					} 
 					
 					if(responseObj.executionId){							
@@ -984,7 +989,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			]
 		});
         
-        this.placeSearch = new gxp.GazetteerCombobox(Ext.apply(this.gazetteerConfig, {
+        this.placeSearch = new gxp.GazetteerCombobox(Ext.apply({
             xtype: 'gazetteercombobox',
             fieldLabel: this.placeSearchLabel,
 			labelStyle: 'width: 110px;',
@@ -1014,7 +1019,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                     this.target.mapPanel.map.zoomToExtent(bounds);
                 }
             }
-        }));
+        }, this.gazetteerConfig));
 
 		this.spatialSettings = new Ext.form.FieldSet({
 			title: this.settingTitle,
@@ -1352,7 +1357,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 								return '<a href="' + val + '" target="_blank" /><img src="theme/app/img/download.png" /></a>';
 							}else{
 							    var message = mydlp.wpsErrorMsg;
-							    var html = '<img src="theme/app/img/download.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>'; 								
+							    var html = '<img src="theme/app/img/error.png" onclick="Ext.Msg.show({title: \'Failed\', msg: \'' + message + ' -  ' + val + '\', buttons: Ext.Msg.OK, icon: Ext.Msg.ERROR});"/>'; 								
 								return html;
 							}
 						}
@@ -1539,7 +1544,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					buttons: Ext.Msg.YESNO,
 					fn: function(btnValue) {
 						if(btnValue == 'yes') {
-							this.submitNotificationsCheck('spatial', callback);
+							this.submitNotificationsCheck('CRS', callback);
 						}
 					},
 					scope: this,
@@ -1547,10 +1552,37 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					icon: Ext.MessageBox.QUESTION
 				});
 			}else{
-				this.submitNotificationsCheck('spatial', callback);
+				this.submitNotificationsCheck('CRS', callback);
 			}
 		}
 		
+        if(cmp == 'CRS'){
+            // ////////////////////////////////////////////////
+            // Check the filter field if it's checked but 
+            // the selected CRS is not compatible with the output format,
+            // ask the user to confirm the operation without the filter.
+            // ////////////////////////////////////////////////
+            if(this.spatialSettings.checkbox.getAttribute('checked') && 
+                (this.formPanel.formatCombo.getValue() == "application/vnd.google-earth.kml+xml" ||  this.formPanel.formatCombo.getValue() == "application/gpx+xml") &&
+                this.formPanel.crsCombo.getValue() != "EPSG:4326" ) {
+                Ext.Msg.show({
+                    title: this.msgWrongCRSTitle,
+                    msg: this.msgWrongCRSMsg,
+                    buttons: Ext.Msg.YESNO,
+                    fn: function(btnValue) {
+                        if(btnValue == 'yes') {
+                            this.submitNotificationsCheck('spatial', callback);
+                        }
+                    },
+                    scope: this,
+                    animEl: 'elId',
+                    icon: Ext.MessageBox.QUESTION
+                });
+            }else{
+                this.submitNotificationsCheck('spatial', callback);
+            }
+        }
+
 		if(cmp == 'spatial'){		
 			if(this.spatialSettings.checkbox.getAttribute('checked') && 
 				this.spatialSelection.features.length < 1 &&
@@ -1729,7 +1761,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             var filterValue = xmlFormat.write(filterFormat.write(filter));
             // var format = new OpenLayers.Format.CQL();
             // var filterValue = format.write(filter);
-            request.inputs['filter'] = new OpenLayers.WPSProcess.LiteralData({value: filterValue});
+            request.inputs['filter'] = new OpenLayers.WPSProcess.ComplexData({
+                                                value: filterValue,
+                                                mimeType: "text/xml"
+                                        });
         }
 
         if(dform.emailField.isValid() && email != ''){
@@ -1914,7 +1949,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         
 		this.invokeClusterManager(r.get('executionId'), this, function(response){
             var element =  Ext.decode(response);
-            
+            /*
             if(!("list" in element)){
 				Ext.Msg.show({
 					title: "",
@@ -1925,11 +1960,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 return;
             }
             
-            var list = element.list;
-            var magicString = 'org.geoserver.wps.executor.ProcessStorage_-ExecutionStatusEx';
+            var list = element.list;*/
+            var magicString = 'org.geoserver.wps.gs.ClusterManagerProcess_-ExecutionStatusExt';
             
 			try{
-				if(!(magicString in list)){
+				if(!(magicString in element)){
 					return;
 				}
 			}catch(e){
@@ -1937,11 +1972,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				console.log(e);
 			}
             
-            var x = list[magicString];
-            if( x && (x.length > 0) ){
-                r.set('phase', x[0].phase);
-                r.set('progress', x[0].progress + "%");
-                r.set('result', x[0].result);
+            var x = element[magicString];
+            if( x ){
+                r.set('phase', x.phase);
+                r.set('progress', x.progress + "%");
+                r.set('result', x.result);
             } 
 			
 			//this.wpsClusterManager._updateInstance(r);
@@ -2060,7 +2095,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             }
             
             this.hideMask();
-        }, this)
+        }, this);
     },
     
     /**
