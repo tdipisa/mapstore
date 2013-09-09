@@ -146,7 +146,6 @@
 			"id": "download",
 			"outputTarget": "west",
             "wpsUrl": "http://192.168.1.103:8088/geoserver/ows?service=WPS",
-            "_wpsUrl": "http://84.33.2.30/geoserverbz/ows?service=WPS",
             "gazetteerUrl": "http://sditest.provinz.bz.it/proxy/names/services?service=WFS",
 			"sridLinkTpl": "http://spatialreference.org/ref/#AUTH#/#SRID#/",
 			"formats": {

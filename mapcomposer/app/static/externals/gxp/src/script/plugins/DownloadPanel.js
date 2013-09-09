@@ -1413,8 +1413,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         });
 		
 		this.executionIdField = new Ext.form.CompositeField({		
-			//width: 167,
-			labelStyle: 'width: 120px;',
+			labelWidth: 110,
 			items: [
                 {
                     xtype: 'textfield',
