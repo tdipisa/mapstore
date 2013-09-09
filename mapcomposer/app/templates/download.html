@@ -505,46 +505,45 @@
 				var downloadTool = app.tools["download"];
 				if(interactiveDownload === 'true'){
 					var westPanel = Ext.getCmp('west');
-					westPanel.setActiveTab(downloadTool.formPanel);			
-				}
+					westPanel.setActiveTab(downloadTool.formPanel);		
 
-				var listener = function(layerRecord){
-					if(interactiveDownload === 'true'){
-						// //////////////////////////////////////////////////
-						// Remove the layer from the map. The layer will be 
-						// re-added to the map from the Downlaod tool. 
-						// In this way the user can view the selected layer
-						// on top.
-						// //////////////////////////////////////////////////
+					var listener = function(layerRecord){
+						if(interactiveDownload === 'true'){
+							downloadTool.setLayer(layerRecord, true);
+						}	
 						
-						var OlMap = app.mapPanel.map;
-						var layer = OlMap.getLayersByName(layerRecord.data.title)[0];
-						var layerExistsInMap = layer ? true : false;
-						if(layerExistsInMap){
-							OlMap.removeLayer(layer);
-						}
-						
-						//
-						// Show the Download Panel Tool 
-						//
-						var westPanel = Ext.getCmp("west");
-						westPanel.setActiveTab(downloadTool.formPanel);
-						
-						downloadTool.setLayer(layerRecord, true);
-					}	
+						addLayer.removeListener('ready', listener, this);
+					};
 					
-					addLayer.removeListener('ready', listener, this);
-				};
+					addLayer.on({
+						'ready' : listener,
+						scope: this
+					});					
+				}
 				
-				addLayer.on({
-					'ready' : listener,
-					scope: this
-				});
+				// //////////////////////////////////////////////////
+				// Remove the layer from the map if 'name' and 
+				// 'source' are the same, in order to avoid duplicate.
+				// The layer will be re-added to the map from the 
+				// Downlaod tool or the AddLayer directly. 
+				// In this way the user can view the selected layer
+				// on top.
+				// //////////////////////////////////////////////////
 				
+				var layerStore = app.mapPanel.layers;  
+				var index = layerStore.findExact("name", msLayerName);
+				if (index > -1) {
+					var original = layerStore.getAt(index);
+				
+					var source = addLayer.checkLayerSource(wmsURL);
+					if(original.get('source') == source.id){
+						layerStore.remove(original);
+					}
+				}
+							
 				addLayer.addLayer(
 					options
-				);
-				
+				);				
 			};
 			
 			/**

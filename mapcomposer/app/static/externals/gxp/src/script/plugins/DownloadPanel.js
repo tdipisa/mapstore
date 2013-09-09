@@ -904,6 +904,25 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							if(this.selectedLayer && this.removePreviousLayerOnSelection){
 								this.target.mapPanel.layers.remove(this.selectedLayer);
 							}
+							
+							// //////////////////////////////////////////////////
+							// Remove the layer from the map if 'name' and 
+							// 'source' are the same, in order to avoid duplicate.
+							// The layer will be re-added to the map from the 
+							// Downlaod tool. 
+							// In this way the user can view the selected layer
+							// on top.
+							// //////////////////////////////////////////////////
+							
+							var layerStore = this.target.mapPanel.layers;  
+							var index = layerStore.findExact("name", record.data.name);
+							if (index > -1) {
+								var original = layerStore.getAt(index);
+							
+								if(original.get('source') == record.data.source){
+									layerStore.remove(original);
+								}
+							}
                             
                             if(!record.get('wpsdownload')) this.checkWpsDownload(record);
         

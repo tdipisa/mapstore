@@ -70,12 +70,12 @@ gxp.plugins.DownloadToolAction = Ext.extend(gxp.plugins.Tool, {
 				    // on top.
 					// //////////////////////////////////////////////////
 					
-					var OlMap = this.target.mapPanel.map;
+					/*var OlMap = this.target.mapPanel.map;
 					var layer = OlMap.getLayersByName(record.data.title)[0];
 					var layerExistsInMap = layer ? true : false;
 					if(layerExistsInMap){
 						OlMap.removeLayer(layer);
-					}
+					}*/
 								
 					var ownerCt = this.downloadTool.formPanel.ownerCt;
 					
