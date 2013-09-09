@@ -124,7 +124,7 @@
 		}, {
              "ptype": "gxp_importexport",
              "service": "http://localhost:8080/servicebox/",
-             "types": ["map","kml/kmz"],
+             "types": ["map"],
              "actionTarget": "paneltbar",
              "index": 28
          }, {
