@@ -610,11 +610,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				    var format = new OpenLayers.Format.XML();
                     try {
                         var xml = format.read(response);
-                        var exceptiontexts = xml.getElementsByTagName("ows:ExceptionText");
+                        var exceptiontexts = format.getElementsByTagNameNS(xml, "*","ExceptionText");
                         if(exceptiontexts.length > 0) {
                             Ext.Msg.show({
                                 title: this.errExceptionTextTitle,
-                                msg: exceptiontexts[0].innerHTML,
+                                msg: (Ext.isIE ? exceptiontexts[0].text : exceptiontexts[0].textContent) ,
                                 buttons: Ext.Msg.OK,
                                 icon: Ext.Msg.WARNING
                             });
