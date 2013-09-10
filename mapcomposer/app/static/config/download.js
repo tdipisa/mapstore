@@ -1,6 +1,6 @@
 {
-   "geoStoreBase":"http://localhost:8080/geostore/rest/",
-   "gnBaseUrl": "http://84.33.2.30/geonetworkbz/",
+   "geoStoreBase":"",
+   "gnBaseUrl": "http://localhost:8080/geonetworkbz/",
    "proxy":"/proxy/?url=",
    "defaultLanguage": "it",
    "tab": true,
@@ -74,50 +74,12 @@
 			}
 		]
 	},
-    "customPanels":[
-        {
-            "xtype": "panel",
-            "title": "Metadata Explorer",
-            "iconCls": "csw-viewer",             
-            "border": false,
-            "id": "south",
-            "region": "south",
-            "layout": "fit",
-            "split":true,
-            "height": 330,
-            "collapsed": true,
-            "collapsible": true,
-            "ctCls": "south-panel",
-            "header": true
-        }
-    ],	
+
 	"customTools":[
 		{
             "ptype": "gxp_featuremanager",
             "id": "featuremanager"
-        },{
-			"ptype": "gxp_metadataexplorer",
-			"id": "metadataexplorer",
-            "outputTarget": "south",
-			"saveState": true,
-            "cswconfig": {
-                "catalogs": [
-                        {"name": "Bozen Portal", "url": "http://localhost:8282/geonetwork/srv/it/csw", "description": "GeoPortale della Provincia di Bolzano"}
-                    ],
-                "dcProperty": "title",
-                "initialBBox": {
-                    "minx": 11.145,
-                    "miny": 43.718,
-                    "maxx": 11.348,
-                    "maxy": 43.84
-                },
-                "cswVersion": "2.0.2",
-                "filterVersion": "1.1.0",
-                "start": 1,
-                "limit": 10,
-                "timeout": 60000
-            }            
-		}, {
+        }, {
 			"ptype": "gxp_geolocationmenu",
 			"outputTarget": "paneltbar",
 			"index": 23
@@ -145,8 +107,7 @@
 			"removePreviousLayerOnSelection": false,
 			"id": "download",
 			"outputTarget": "west",
-            "wpsUrl": "http://192.168.1.103:8088/geoserver/ows?service=WPS",
-            "gazetteerUrl": "http://sditest.provinz.bz.it/proxy/names/services?service=WFS",
+            "wpsUrl": "http://localhost:8080/geoserver/ows?service=WPS",
 			"sridLinkTpl": "http://spatialreference.org/ref/#AUTH#/#SRID#/",
 			"formats": {
 				"wfs":[
