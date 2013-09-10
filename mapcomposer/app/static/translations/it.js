@@ -598,6 +598,8 @@ GeoExt.Lang.add("it", {
         errBufferMsg: "Errore nel buffering della geometria",        
         errUnknownLayerTypeTitle: "Tipo layer sconosciuto",
         errUnknownLayerTypeMsg: "Impossibile stabilire il tipo di layer. Selezionare un altro layer",        
+        errLayerGroupTypeTitle: "Layergroup selezionato",   
+        errLayerGroupTypeMsg: "I Layergroup non possono essere scaricati. Selezionare un altro layer",
         msgEmptyEmailTitle: "Campo email vuoto",
         msgEmptyEmailMsg: "La notifica via email è abilitata, ma il campo è vuoto. Continuare senza la notifica?",        
         msgEmptyFilterTitle: "Campo filtro vuoto",

@@ -604,6 +604,8 @@ GeoExt.Lang.add("de", {
         errBufferMsg: "Fehler beim Buffern der Geometrie",        
         errUnknownLayerTypeTitle: "Layer-Typ unbekannt",
         errUnknownLayerTypeMsg: "Es ist nicht möglich den Layer-Typ zu ermitteln. Wählen Sie einen anderen Layer aus.",        
+        errLayerGroupTypeTitle: "Layergroup erkannt",
+        errLayerGroupTypeMsg: "Layergroups können nicht heruntergeladen werden. Wählen Sie einen anderen Layer aus.",
         msgEmptyEmailTitle: "Das Feld E-Mail ist leer",
         msgEmptyEmailMsg: "Die E-Mail-Benachrichtigung ist aktiviert, aber das Feld E-Mail ist leer. Wollen Sie ohne Benachrichtigung fortfahren?",        
         msgEmptyFilterTitle: "Das Feld Filter ist leer",

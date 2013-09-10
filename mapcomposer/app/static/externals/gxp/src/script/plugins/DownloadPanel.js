@@ -260,9 +260,13 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     errBufferMsg: "Error buffering feature",
     
     errUnknownLayerTypeTitle: "Unknown layer type",
-	
-    errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
     
+    errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",
+
+    errLayerGroupTypeTitle: "Layergroup detected",
+    
+    errLayerGroupTypeMsg: "Layergroups cannot be downloaded. Please select another layer to download",
+
     msgEmptyEmailTitle: "Empty email",
 	
     msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",
@@ -749,13 +753,20 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                     // ////////////////////////////////////////////////////
                                     var keywords = record.get("keywords");								
                                     if(keywords){
-                                        for(var k=0; k<keywords.length; k++){
-                                            var keyword = keywords[k].value || keywords[k];
-                                            
-                                            if(keyword.indexOf("WCS") != -1){
-                                                recordData.push(true);
-                                                break;
-                                            }                       
+                                        if(keywords.length == 0){
+                                            recordData.push(false); // wcs
+                                            recordData.push(false); // wfs
+                                            recordData.push(false); // wpsdownload
+                                            recordData.push(true); // isLayerGroup
+                                        }else{
+                                            for(var k=0; k<keywords.length; k++){
+                                                var keyword = keywords[k].value || keywords[k];
+                                                
+                                                if(keyword.indexOf("WCS") != -1){
+                                                    recordData.push(true);
+                                                    break;
+                                                }                       
+                                            }
                                         }
                                     }
 								}
@@ -837,7 +848,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		// Stores Array stores definitions.
 		// /////////////////////////////////////
 		this.layerStore = new Ext.data.ArrayStore({
-			fields: ["source", "title", "name", "olid", {name: "wcs", type: 'boolean'}, {name: "wfs", type: 'boolean'}, {name: "wpsdownload", type: 'boolean'}],
+			fields: ["source", "title", "name", "olid", {name: "wcs", type: 'boolean'}, {name: "wfs", type: 'boolean'}, {name: "wpsdownload", type: 'boolean'}, {name: "isLayerGroup", type: 'boolean'}],
 			data: []
 		});
 			
@@ -962,8 +973,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                 this.getLayerType(record.data, function(layerType) {
                                     if(!layerType) {
                                         this.formPanel.downloadButton.disable();
-                                        this.formPanel.resetButton.disable();
-                                        this.formPanel.resultPanel.refreshButton.disable();
+                                        //this.formPanel.resetButton.disable();
+                                        //this.formPanel.resultPanel.refreshButton.disable();
                                         return Ext.Msg.show({
                                             title: this.errUnknownLayerTypeTitle,
                                             msg: this.errUnknownLayerTypeMsg,
@@ -972,6 +983,16 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                                         });
                                     }
                                     
+                                    if(layerType == 'group') {
+                                        this.formPanel.downloadButton.disable();
+                                        return Ext.Msg.show({
+                                            title: this.errLayerGroupTypeTitle,
+                                            msg: this.errLayerGroupTypeMsg,
+                                            buttons: Ext.Msg.OK,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }
+
                                     record.set('wcs', (layerType == 'WCS'));
                                     this.layersAttributes[record.get('olid')].wcs = (layerType == 'WCS');
                                     record.set('wfs', (layerType == 'WFS'));
@@ -2160,7 +2181,12 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
         // If we found the "wcs" keyword, just return WCS
         //
 		if(layer.wcs) return callback.call(this, 'WCS');
-        
+ 
+        //
+        // If we found no keywords, just return, it's a Layergroup
+        //
+        if(layer.isLayerGroup) return callback.call(this, 'group');
+       
         this.showMask();
         
         if(questionMarkIndexOf > -1) {
@@ -2294,9 +2320,11 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                         });
                         this.formPanel.downloadButton.disable();
                     }else{
-                        this.formPanel.downloadButton.enable();
-                        record.set('wpsdownload', true);
-                        this.layersAttributes[record.get('olid')].wpsdownload = true;
+                        if(!record.get('isLayerGroup')){
+                            this.formPanel.downloadButton.enable();
+                            record.set('wpsdownload', true);
+                            this.layersAttributes[record.get('olid')].wpsdownload = true;
+                        }
                     }
                 }else{		
                     Ext.Msg.show({

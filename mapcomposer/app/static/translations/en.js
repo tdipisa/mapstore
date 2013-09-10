@@ -564,6 +564,8 @@ GeoExt.Lang.add("en", {
         errBufferMsg: "Error buffering feature",        
         errUnknownLayerTypeTitle: "Unknown layer type",
         errUnknownLayerTypeMsg: "Cannot estabilish the type of the selected layer. Please select another layer to download",        
+        errLayerGroupTypeTitle: "Layergroup detected",    
+        errLayerGroupTypeMsg: "Layergroups cannot be downloaded. Please select another layer to download",
         msgEmptyEmailTitle: "Empty email",
         msgEmptyEmailMsg: "The email notification is enabled, but the email field is not filled. Continue wihout email notification?",        
         msgEmptyFilterTitle: "Empty filter",

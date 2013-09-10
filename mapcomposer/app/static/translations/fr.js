@@ -569,6 +569,8 @@ GeoExt.Lang.add("fr", {
         errBufferMsg: "Erreurs lorsque tampon géométrie",        
         errUnknownLayerTypeTitle: "Type de couche inconnu",
         errUnknownLayerTypeMsg: "Impossible de déterminer le type de couche. Choisir une autre couche",        
+        errLayerGroupTypeTitle: "Layergroup détecté",
+        errLayerGroupTypeMsg: "Layergroups ne peuvent pas être téléchargées. Choisir une autre couche",
         msgEmptyEmailTitle: "Champ email vide",
         msgEmptyEmailMsg: "La notification par courrier électronique est activée, mais le champ est vide. Continuer sans notification?",        
         msgEmptyFilterTitle: "Champ de filtre vide",
