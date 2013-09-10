@@ -196,7 +196,7 @@
             }
             
             var url = Ext.urlDecode(query);        
-            var code = url.locale || serverConfig.defaultLanguage || "en";			
+            var code = url.locale || serverConfig.defaultLanguage || "it";			
 
 			// ////////////////////////////////////////////////////
 			// Setting the language code for the GeoExt tools
@@ -210,7 +210,11 @@
 			// ////////////////////////////////////////////////////
 			var languageSelector = new gxp.form.LanguageSwitcher({
 				currentContext:code,
-				saveMessage:authorization
+				saveMessage:authorization,
+				data:[
+					['it','Italiano','','it','Italian language'], 
+					['de','Deutsch','','de','Deutsch language'] 
+				]
 			});
 			
 			// ///////////////////////////////////////////
