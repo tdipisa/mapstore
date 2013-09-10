@@ -1022,7 +1022,23 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					editable: false,
 					resizable: true,
 					labelSeparator: ':' + '<span style="color: #918E8F; padding-left: 2px;">*</span>',
-					allowBlank: false					
+					allowBlank: false,
+					listeners:{
+					    select: {
+					        scope: this,
+					        fn: function(combo){
+					            // GPX and KML only supported format is EPSG:4326
+					            if(    combo.getValue() == 'application/vnd.google-earth.kml+xml'
+                                    || combo.getValue() == 'application/gpx+xml') {
+					                this.formPanel.crsFieldset.crsCombo.setValue('EPSG:4326');
+                                    this.formPanel.crsFieldset.crsCombo.setReadOnly(true);
+                                    this.formPanel.crsFieldset.infoBtn.enable();
+					            }else{
+                                    this.formPanel.crsFieldset.crsCombo.setReadOnly(false);
+					            }
+					        }
+					    }
+					}
 				}, {
 					xtype: "label",
 					cls: "labelField",
@@ -1096,6 +1112,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                             valueField: 'name',
                             emptyText: this.initialText,
                             editable: true,
+                            forceSelection: true,
                             resizable: true,
                             typeAhead: true,
                             typeAheadDelay: 3,
