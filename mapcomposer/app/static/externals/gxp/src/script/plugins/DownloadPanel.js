@@ -319,7 +319,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
     msgAttributes: 'Attributes',
     
-    errUnexistingListMsg: "Lista non esistente",    
+    errExceptionTextTitle: "Exception",
+    
+    errWrongResponseMsg: "Got wrong respone from server",
 	
 	executionIdField: "Execution ID",
 	
@@ -601,7 +603,39 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 		if(executionId){
 			this.showMask();
 			this.invokeClusterManager(executionId, this, function(response){
-				var element =  Ext.decode(response);
+				var element;
+				try{
+				    element =  Ext.decode(response);
+				}catch(e){
+				    var format = new OpenLayers.Format.XML();
+                    try {
+                        var xml = format.read(response);
+                        var exceptiontexts = xml.getElementsByTagName("ows:ExceptionText");
+                        if(exceptiontexts.length > 0) {
+                            Ext.Msg.show({
+                                title: this.errExceptionTextTitle,
+                                msg: exceptiontexts[0].innerHTML,
+                                buttons: Ext.Msg.OK,
+                                icon: Ext.Msg.WARNING
+                            });
+                            this.hideMask();
+                            return;
+                        }else{
+                            Ext.Msg.show({
+                                title: "",
+                                msg: this.errWrongResponseMsg,
+                                buttons: Ext.Msg.OK,
+                                icon: Ext.Msg.WARNING
+                            });
+                            this.hideMask();
+                            return; 
+                        }
+                    } catch(e) {
+                        // TODO: log this exception
+                        this.hideMask();
+                        return;
+                    }
+				}
 				/*
 				if(!("list" in element)){
 					Ext.Msg.show({

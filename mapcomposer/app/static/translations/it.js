@@ -626,7 +626,7 @@ GeoExt.Lang.add("it", {
         msgCategory: "Categoria",          
         msgMetadata: "Metadata",
         msgAttributes: "Attributi",        
-        errUnexistingListMsg: "Lista non esistente",
+        errWrongResponseMsg: "Il server ha risposto in modo inatteso",
 		executionIdField: "ID Esecuzione",	
 		executionIdFieldEmptyText: "Inserire un ID esecuzione",	
 		executionIdFieldTooltip: "Inserire un ID di esecuzione per seguire lo stato del processo nella Griglia",

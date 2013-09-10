@@ -597,7 +597,7 @@ GeoExt.Lang.add("fr", {
         msgCategory: "Catégorie",          
         msgMetadata: "Métadonnées",
         msgAttributes: "Attributs",        
-        errUnexistingListMsg: "Liste n'existe pas",
+        errWrongResponseMsg: "Eu tort respone de serveur",
 		executionIdField: "ID d'exécution",	
 		executionIdFieldEmptyText: "Entrez une exécution d'identité",	
 		executionIdFieldTooltip: "Entrez un ID d'exécution de suivre l'état du processus dans la grille",
