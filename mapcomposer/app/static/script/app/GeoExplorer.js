@@ -409,10 +409,18 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             collapseMode: "mini",
             header: false,
             items: [
-                { autoScroll: true, tbar: [], border: false, id: 'tree', title: this.layersText}, 
-                {
-                    xtype: "panel", layout: "fit", 
-                    border: false, id: 'legend', title: this.legendText
+                { 
+					autoScroll: true, 
+					tbar: [], 
+					border: false, 
+					id: 'tree', 
+					title: this.layersText
+				}, {
+                    xtype: "panel", 
+					layout: "fit", 
+                    border: false, 
+					id: 'legend', 
+					title: this.legendText
                 }
             ]
         });
@@ -425,8 +433,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
         
         this.on("ready", function() {
-            // enable only those items that were not specifically disabled
-            var disabled = this.toolbar.items.filterBy(function(item) {
+			// /////////////////////////////////////
+            // Enable only those items that were not 
+			// specifically disabled
+            // /////////////////////////////////////
+			
+			// Top Toolbar
+			var disabled = this.toolbar.items.filterBy(function(item) {
                 return item.initialConfig && item.initialConfig.disabled;
             });
             
@@ -435,6 +448,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             disabled.each(function(item) {
                 item.disable();
             });
+			
+			// Bottom Toolbar
+			disabled = this.toolbar.items.filterBy(function(item) {
+                return item.initialConfig && item.initialConfig.disabled;
+            });
+            
+            this.bottom_toolbar.enable();
+            
+            disabled.each(function(item) {
+                item.disable();
+            });		
 			
 			this.appMask.hide();
 		});
@@ -460,12 +484,22 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
  
         googleEarthPanel.on("show", function() {
             preGoogleDisabled.length = 0;
+			
+			// Top Toolbar
             this.toolbar.items.each(function(item) {
                 if (item.disabled) {
                     preGoogleDisabled.push(item);
                 }
             });
             this.toolbar.disable();
+			
+			// Bottom Toolbar
+			this.bottom_toolbar.items.each(function(item) {
+                if (item.disabled) {
+                    preGoogleDisabled.push(item);
+                }
+            });
+            this.bottom_toolbar.disable();
 			
 			// ////////////////////////////////////////////////////
             // Loop over all the tools and remove their output
@@ -490,8 +524,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
  
         googleEarthPanel.on("hide", function() {
             // re-enable all tools
-            this.toolbar.enable();
-           
+            this.toolbar.enable();           
+		    this.bottom_toolbar.enable();
+		   
             var layersContainer = Ext.getCmp("tree");
             var layersToolbar = layersContainer && layersContainer.getTopToolbar();
             if (layersToolbar) {
@@ -537,9 +572,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             var portalPanels = portalPanels.concat(toPortal);
         }
 		
+		this.bottom_toolbar = new Ext.Toolbar({
+            disabled: true,
+            id: 'panelbbar',
+			enableOverflow: true
+        });
+		
         this.portalItems = [{
             region: "center",
-            layout: "border",            
+            layout: "border",  
+			bbar: this.bottom_toolbar,
             items: portalPanels
         }];
         

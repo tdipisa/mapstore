@@ -217,14 +217,6 @@
                 GeoExt.Lang.set(code);
             }
 			
-			// ////////////////////////////////////////////////////
-			// Setting the language selector
-			// ////////////////////////////////////////////////////
-			var languageSelector = new gxp.form.LanguageSwitcher({
-				currentContext:code,
-				saveMessage:authorization
-			});
-			
 			// ///////////////////////////////////////////
 			// Defining the GeoNetwork panel properties
 			// ///////////////////////////////////////////
@@ -281,40 +273,6 @@
 				appTabsOpts.hideMode = "offsets";
                 appTabs = new Ext.TabPanel(appTabsOpts); 
             }
-
-			var iframe = "<iframe style='border: none; height: 100%; width: 100%' src='about.html' frameborder='0' border='0'>" + 
-						 "<a target='_blank' href='about.html'>" + GeoExplorer.prototype.aboutText + "</a> </iframe>";
-						 
-            var aboutButton = new Ext.Button({
-                text: GeoExplorer.prototype.appInfoText,
-                iconCls: "icon-geoexplorer",
-                handler: function(){
-                    var appInfo = new Ext.Panel({
-                        header: false,
-                        html: iframe
-                    });
-
-                    var win = new Ext.Window({
-                        title:  GeoExplorer.prototype.aboutThisMapText,
-                        modal: true,
-                        layout: "fit",
-                        width: 360,
-                        height: 360,
-                        items: [appInfo]
-                    });
-                    
-                    win.show();
-                }
-            });
-            
-            var poweredByGeoSol = new Ext.Button({
-                tooltip: 'Powered by GeoSolutions',
-                iconCls: "icon-geosol",
-                width : 150,
-                handler: function(btn){
-                    window.open('http://www.geo-solutions.it/contact/', '_blank');
-                }
-            });    
 			
 			// ///////////////////////////////////
 			// Header definition
@@ -357,10 +315,7 @@
                       maxHeight: 140,
                       height: 140,
                       id : 'msheader'
-                    },appTabs],                            
-                    bbar : [
-                      poweredByGeoSol, ' ', aboutButton, '->',languageSelector
-                    ]
+                    },appTabs]
                 }]
             });
             

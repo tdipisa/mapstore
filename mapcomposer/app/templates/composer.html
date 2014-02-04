@@ -202,8 +202,8 @@
                       });
                  }
             });
-            
-			// //////////////////////////////////////////////////////            
+			
+		    // //////////////////////////////////////////////////////            
             // Setting the locale based on query string parameter
             // //////////////////////////////////////////////////////
 			var query = location.search;        
@@ -221,20 +221,12 @@
                 GeoExt.Lang.set(code);
             }
 			
-			// ////////////////////////////////////////////////////
-			// Setting the language selector
-			// ////////////////////////////////////////////////////
-			var languageSelector = new gxp.form.LanguageSwitcher({
-				currentContext:code,
-				saveMessage:authorization
-			});
-			
             var appTabsOpts = {
-                        region: 'center',
-                        border : false,
-                        id : 'appTabs',
-                        enableTabScroll: true
-                    };
+				region: 'center',
+				border : false,
+				id : 'appTabs',
+				enableTabScroll: true
+            };
             
             //check if MetadataExplorer plugin is defined in customTools configuration
             var customToolsME = [];
@@ -262,40 +254,6 @@
             }else{
                 appTabs = new Ext.TabPanel(appTabsOpts); 
             }
-
-			var iframe = "<iframe style='border: none; height: 100%; width: 100%' src='about.html' frameborder='0' border='0'>" + 
-						 "<a target='_blank' href='about.html'>" + GeoExplorer.prototype.aboutText + "</a> </iframe>";
-						 
-            var aboutButton = new Ext.Button({
-                text: GeoExplorer.prototype.appInfoText,
-                iconCls: "icon-geoexplorer",
-                handler: function(){
-                    var appInfo = new Ext.Panel({
-                        header: false,
-                        html: iframe
-                    });
-
-                    var win = new Ext.Window({
-                        title:  GeoExplorer.prototype.aboutThisMapText,
-                        modal: true,
-                        layout: "fit",
-                        width: 360,
-                        height: 360,
-                        items: [appInfo]
-                    });
-                    
-                    win.show();
-                }
-            });
-            
-            var poweredByGeoSol = new Ext.Button({
-                tooltip: 'Powered by GeoSolutions',
-                iconCls: "icon-geosol",
-                width : 150,
-                handler: function(btn){
-                    window.open('http://www.geo-solutions.it/contact/', '_blank');
-                }
-            });    
 			
             var appViewport = new Ext.Viewport({
                 id: 'appVieport',
@@ -306,10 +264,7 @@
                     layout : 'border',
                     border : false,
                     header : false,                    
-                    items : [appTabs],                            
-                    bbar : [
-                      poweredByGeoSol, ' ', aboutButton, '->',languageSelector
-                    ]
+                    items : [appTabs]
                 }]
             });
             
