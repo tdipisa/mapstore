@@ -255,18 +255,56 @@
                 appTabs = new Ext.TabPanel(appTabsOpts); 
             }
 			
-            var appViewport = new Ext.Viewport({
-                id: 'appVieport',
-                layout:'fit',
-                border:false,
-                items: [{
-                    region : 'center',
-                    layout : 'border',
-                    border : false,
-                    header : false,                    
-                    items : [appTabs]
-                }]
-            });
+			var header = serverConfig.header;
+			var footer = serverConfig.footer;
+			
+			var viewport = {
+					id: 'appVieport',
+					layout: 'fit',
+					border: false
+			};
+			
+			if(header || footer){
+				var north = {
+					header: false,
+					region: 'north',
+					id: 'msheader'
+				};
+			
+				if(header){
+					north = Ext.applyIf(north, (header.container ? header.container : {}));
+					north.html = (header.css || '') + header.html || '';
+				}
+				
+			    var south = {
+					header: false,
+					region: 'south',
+					id: 'msfooter'
+				};
+				
+				if(footer){
+					south = Ext.applyIf(south, (footer.container ? footer.container : {}));
+					south.html = (footer.css || '') + footer.html || '';
+				}
+				
+				viewport.items = [{
+					region: 'center',
+					layout: 'border',
+					border: false,
+					header: false, 
+					items: [north, appTabs, south]
+				}];
+			}else{
+				viewport.items = [{
+					region: 'center',
+					layout: 'border',
+					border: false,
+					header: false,                    
+					items: [appTabs]
+				}]
+			}			
+			
+			var appViewport = new Ext.Viewport(viewport);
             
             // /////////////////////////////////////////////////////////////
             // Parsing WMS servers Sources for getCapabilities operation
