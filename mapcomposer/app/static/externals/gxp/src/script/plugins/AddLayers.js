@@ -110,6 +110,16 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      *  Text for the layer selection (i18n).
      */
     layerSelectionText: "View available data from:",
+	
+	/** api: config[deleteSourceDialogTitle]
+     *  ``String``
+     */
+	deleteSourceDialogTitle: "Delete Source",
+	
+	/** api: config[deleteSourceDialogMsg]
+     *  ``String``
+     */
+	deleteSourceDialogMsg: "Are you sure to delete this source",
     
     /** api: config[instructionsText]
      *  ``String``
@@ -211,6 +221,26 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      */
     additionalSources: [],
     
+	/** api: config[availableFormats]
+     *  ``Array``
+     *  List of available formats for map requests.
+     */
+	availableFormats: [["image/png8"], ["image/png"], ["image/jpeg"]],
+	
+	/** api: config[availableVendorOptions]
+     *  ``Array``
+     *  List of available vendor options for source layers.
+     */
+	availableVendorOptions: [
+		["ANGLE"], 
+		["BUFFER"], 
+		["CQL_FILTER"], 
+		["ENV"], 
+		["FILTER"], 
+		["FORMAT_OPTIONS"], 
+		["PALETTE"], 
+		["TILESORIGIN"]
+	],
 
     /** private: method[constructor]
      */
@@ -378,6 +408,13 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                     this.setSelectedSource(source);
                     
                     filterText.reset();
+					
+					// Enable or disable the source edit label
+					if(source.ptype == "gxp_wmssource"){
+						capGridToolbar[4].enable();
+					}else{
+						capGridToolbar[4].disable();
+					}				
                 },
                 scope: this
             }
@@ -398,7 +435,66 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 text: this.addServerText,
                 iconCls: "gxp-icon-addserver",
                 handler: function() {
-                    newSourceWindow.show();
+					newSourceWindow.showWindow();	
+                }
+            }));
+			
+		    capGridToolbar.push(new Ext.Button({
+                text: "Edit",
+				tooltip: "Edit Selected Server",
+                iconCls: "edit",
+				disabled: true,
+				scope: this,
+                handler: function() {
+                    newSourceWindow.bindSource(this.selectedSource);
+                }
+            }));
+			
+		    capGridToolbar.push(new Ext.Button({
+                text: "Delete",
+				tooltip: "Delete Selected Server",
+                iconCls: "delete",
+				scope: this,
+                handler: function() {				
+					var removeFunction = function(buttonId, text, opt){        
+						if(buttonId === 'ok'){ 			
+							// /////////////////////////////////////////////////////
+							// Remove the layers associated to the selected source
+							// /////////////////////////////////////////////////////
+							var layers = this.target.mapPanel.layers;
+
+							var selSources = this.selectedSource;
+							layers.data.each(function(record, index, totalItems ) {
+								var group = record.get('group');
+								var name = record.get('name');
+								var source = record.get('source');
+								if(group !== 'background' && name && source == selSources.id){
+									layers.remove(record);
+								}
+							}); 			
+						
+							// ///////////////////////////
+							// Remove the selected source
+							// ///////////////////////////
+							var sourceRecordIdx = sources.find("id", selSources.id);
+							var sourceRecord = sources.getAt(sourceRecordIdx);
+							delete this.target.layerSources[sourceRecord.get("id")];
+							sources.remove(sourceRecord);				
+							
+							this.sourceComboBox.onSelect(sources.getAt(0), 0);
+							
+							this.target.modified = true;
+						}
+					}
+					
+					Ext.Msg.show({
+					   title: this.deleteSourceDialogTitle,
+					   msg: this.deleteSourceDialogMsg,
+					   buttons: Ext.Msg.OKCANCEL,
+					   fn: removeFunction,
+					   icon: Ext.MessageBox.QUESTION,
+					   scope: this
+					});
                 }
             }));
         }
@@ -410,27 +506,39 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
         var newSourceWindow = new gxp.NewSourceWindow({
             modal: true,
             availableSources: this.availableSources,
+		    availableVendorOptions: this.availableVendorOptions,
+	        availableFormats: this.availableFormats,
             listeners: {
-                "server-added": function(url, type) {
+				scope: this,
+                "server-added": function(url, type, sourceCfg) {
                     newSourceWindow.setLoading();
                     var sourceCfg;
                     for(var count = 0, l = this.availableSources.length; count < l; count++) {
                         var currentSource = this.availableSources[count];
                         if(currentSource.name === type) {
-                            sourceCfg = Ext.apply({url: url}, currentSource.config);
+                            //sourceCfg = Ext.apply({url: url}, currentSource.config);
+                            sourceCfg = Ext.apply(currentSource.config, sourceCfg);
                         }
                     }
                     
                     this.target.addLayerSource({
                         config: sourceCfg,
                         callback: function(id) {
-                            // add to combo and select
-                            var record = new sources.recordType({
-                                id: id,
-                                title: this.target.layerSources[id].title || this.untitledText
-                            });
-                            sources.insert(0, [record]);
-                            this.sourceComboBox.onSelect(record, 0);
+							// ////////////////////////////////////////////
+                            // Add to combo and select: check before if 
+							// record already exists (the edit case)
+							// ////////////////////////////////////////////
+							var idx = sources.find("id",  id);
+							if(idx < 0){
+								var record = new sources.recordType({
+									id: id,
+									title: this.target.layerSources[id].title || this.untitledText
+								});
+								sources.insert(0, [record]);
+								this.sourceComboBox.onSelect(record, 0);
+							}
+                            
+							this.target.modified = true;
                             newSourceWindow.hide();
                         },
                         fallback: function(source, msg) {
@@ -441,7 +549,45 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                         scope: this
                     });
                 },
-                scope: this
+				"server-modified": function(url, type, sourceCfg, sourceId) {
+                    newSourceWindow.setLoading();
+
+					var sourceRecordIdx = sources.find("id", sourceId);
+					if(sourceRecordIdx >= 0){
+						// The record of the combo box store
+						var sourceRecord = sources.getAt(sourceRecordIdx);	
+						var title = sourceRecord.get("title");
+						if(sourceCfg.title != title){
+							sourceRecord.set("title", sourceCfg.title);
+							//sourceRecord.commit();
+						}					
+						
+						// The record of the real used sources store
+						var source = this.target.layerSources[sourceId];
+						
+						Ext.apply(source.initialConfig, sourceCfg);
+						Ext.apply(source, sourceCfg);
+						
+						if(source.store.baseParams.VERSION != sourceCfg.version){
+							source.store.baseParams.VERSION = sourceCfg.version;
+							
+							// //////////////////////////////
+							// Check also the authparam
+							// TODO: More checks on this
+							// //////////////////////////////
+							if(source.authParam != sourceCfg.authParam){
+								if(source.authParam){
+									delete source.store.baseParams[source.authParam];
+								}
+								
+								source.store.baseParams[sourceCfg.authParam] = source.getAuthParam();
+							}
+						}
+						
+						source.store.reload();
+						this.target.modified = true;
+					}
+				}
             }
         });
         
@@ -451,6 +597,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
             layout: "fit",
             items: [capGridPanel]
         };
+		
         if (this.instructionsText) {
             items.items.push({
                 xtype: "box",
@@ -527,7 +674,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
             closeAction: "hide",
             layout: "fit",
             height: 300,
-            width: 570,
+            width: 580,
             modal: true,
             items: items,
             tbar: capGridToolbar,
@@ -537,7 +684,9 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                     capGridPanel.getSelectionModel().clearSelections();
                 },
                 show: function(win) {
-                    this.setSelectedSource(this.target.layerSources[data[idx][0]]);
+					if(!this.selectedSource){
+						this.setSelectedSource(this.target.layerSources[data[idx][0]]);
+					}
                 },
                 scope: this
             }
