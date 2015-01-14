@@ -120,6 +120,8 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      *  ``String``
      */
 	deleteSourceDialogMsg: "Are you sure to delete this source",
+	
+	deleteSourceText: "This source cannot be removed because is used for the current background of the map",
     
     /** api: config[instructionsText]
      *  ``String``
@@ -464,26 +466,66 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
 							var layers = this.target.mapPanel.layers;
 
 							var selSources = this.selectedSource;
+							
+							// /////////////////////////////////////////////////////
+							// Check if the layer is the current selected BG 
+							// in the map (if yes the source should not be removed).
+							// /////////////////////////////////////////////////////
+							var remove = true;
 							layers.data.each(function(record, index, totalItems ) {
 								var group = record.get('group');
 								var name = record.get('name');
 								var source = record.get('source');
-								if(group !== 'background' && name && source == selSources.id){
-									layers.remove(record);
+
+								if(name && source == selSources.id && group == 'background'){
+									var visible = record.data.layer.visibility;
+									if(visible === true){
+										remove = false;
+									}								
 								}
 							}); 			
 						
 							// ///////////////////////////
 							// Remove the selected source
 							// ///////////////////////////
-							var sourceRecordIdx = sources.find("id", selSources.id);
-							var sourceRecord = sources.getAt(sourceRecordIdx);
-							delete this.target.layerSources[sourceRecord.get("id")];
-							sources.remove(sourceRecord);				
-							
-							this.sourceComboBox.onSelect(sources.getAt(0), 0);
-							
-							this.target.modified = true;
+							if(remove === true){
+								// ////////////////////////////////////////////////////////////
+							    // Remove the source layers only if the source can be removed.
+								// ////////////////////////////////////////////////////////////
+								layers.data.each(function(record, index, totalItems ) {
+									var group = record.get('group');
+									var name = record.get('name');
+									var source = record.get('source');
+
+									if(name && source == selSources.id){
+										layers.remove(record);								
+									}
+								}); 
+								
+								var sourceRecordIdx = sources.find("id", selSources.id);
+								var sourceRecord = sources.getAt(sourceRecordIdx);
+								delete this.target.layerSources[sourceRecord.get("id")];
+								sources.remove(sourceRecord);				
+								
+								var sourcesCount = sources.getCount();
+								if(sourcesCount > 0){
+									this.sourceComboBox.onSelect(sources.getAt(0), 0);
+								}else{
+									this.sourceComboBox.clearValue();
+									var capGridStore = capGridPanel.getStore();
+									capGridStore.removeAll();
+								}							
+								
+								this.target.modified = true;
+							}else{
+								Ext.Msg.show({
+								   title: this.deleteSourceDialogTitle,
+								   msg: this.deleteSourceText,
+								   buttons: Ext.Msg.OK,
+								   icon: Ext.MessageBox.WARNING,
+								   scope: this
+								});
+							}
 						}
 					}
 					
