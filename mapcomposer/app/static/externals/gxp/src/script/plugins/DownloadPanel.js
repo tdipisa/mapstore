@@ -345,13 +345,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
 	processExecutions: "Process Executions",
 	
+	processExecutionsLoadText: "Load Existing Process",
+	
 	processResponseErrorTitle: "Process Response Error",
 	
 	processResponseErrorMsg: "The process did not properly respond",
 	
 	describeProcessErrorMsg: "Cannot read response",
 	
-	bufferFieldLabel: "Buffer (m)",
+	bufferFieldLabel: "Approximate Buffer (m)",
 	
 	downloadFormFieldSetTitle: "Download Form",
 	
@@ -364,6 +366,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	readOnlyLayerSelection: false,
 	
 	selectionSummary: "Selection Summary",
+	
+	selectedProcessIdString: "Selected process ID: ",
+	
+	selectedProcessIdStringUndef: "Unknown",
 	
 	areaLabel: "Area",
 	
@@ -1638,6 +1644,10 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									   fn: function(btn){
 											if(btn == 'ok'){
 												store.remove(checkedRecords);
+												
+												if(store.getCount() < 1){
+													this.resultFieldSet.processExecutionLabel.setText("");
+												}
 											} 
 										},
 									   icon: Ext.MessageBox.WARNING,
@@ -1730,6 +1740,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									tooltip = mydlp.msgTooltipSuccess;
 									break;
 								default:
+									icnClass = 'loading';
 									break;
 							}
 							
@@ -1787,6 +1798,17 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					}
                 }
             ],
+			listeners:{
+				scope: this,
+				rowclick: function(grid, rowIndex, evt){
+					var selectedProcessId = grid.getStore().getAt(rowIndex).get("executionId");
+					if(selectedProcessId){
+						this.resultFieldSet.processExecutionLabel.setText(this.selectedProcessIdString + grid.getStore().getAt(rowIndex).get("executionId"));
+					}else{
+						this.resultFieldSet.processExecutionLabel.setText(this.selectedProcessIdString + this.selectedProcessIdStringUndef);
+					}
+				}
+			},
             height: 300,
             title: this.resTitle,
             scope: this
@@ -1824,13 +1846,34 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 				}
 			]
 		});
+		
+	    this.executionIdFieldSet = new Ext.form.FieldSet({
+            title: this.processExecutionsLoadText,
+			style:{
+				marginTop: "10px"
+			},
+		    checkboxToggle: true,
+            collapsed: true,
+			items: [
+				this.executionIdField
+			]
+        });
 	    
 	    this.resultFieldSet = new Ext.form.FieldSet({
             title: this.processExecutions,
 			autoHeight: 342,
 			items: [
-			    this.executionIdField,
-				this.resultPanel
+				{
+					xtype: "label",
+					ref: 'processExecutionLabel',
+					cls: "labelField",
+					style:{
+						marginBottom: "10px"
+					},
+					text: ""
+				},
+				this.resultPanel,
+				this.executionIdFieldSet
 			]
         });
 		
@@ -2247,6 +2290,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                    fn: function(btn){
                         if(btn == 'ok'){
 							store.remove(rec);
+							this.resultFieldSet.processExecutionLabel.setText("");
 						} 
                     },
                    icon: Ext.MessageBox.QUESTION,

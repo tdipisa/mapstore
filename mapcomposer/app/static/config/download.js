@@ -4,8 +4,8 @@
    "gsSources":{ 
    		"geosol":{
 			"ptype": "gxp_wmssource",
-			"url": "http://localhost:8080/geoserver/wms",
-			"version":"1.1.1",
+			"url": "http://localhost/geoserver/wms",
+			"version":"1.3.0",
             "layerBaseParams": { 
 			    "FORMAT":"image/png8",
 				"TILED": true,
@@ -99,7 +99,7 @@
 			"id": "download",
 			"layersFromAllCapabilities": false,
 			"outputTarget": "west",
-            "wpsUrl": "http://localhost:8080/geoserver/ows?service=WPS",
+            "wpsUrl": "http://localhost/geoserver/ows?service=WPS",
 			"sridLinkTpl": "http://spatialreference.org/ref/#AUTH#/#SRID#/",
 			"autoComplete": {
 				"sources": ["geosol"],

@@ -569,7 +569,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                     this.schemaCache[typeName] = schema;
                 }
             } else {
-                callback.call(scope, false);
+                callback.call(scope, false, (r && r.get("owsType") ? r.get("owsType") : false));
             }
         }, this);
     },
