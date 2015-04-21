@@ -911,7 +911,7 @@ GeoExt.Lang.add("de", {
 
     "gxp.plugins.DownloadPanel.prototype":{    
         initialText: "Auswählen ...",	
-        tabTitle: "Interaktiver Download",    
+        tabTitle: "Download",    
         dselTitle: "Daten Auswählen",
         dselLayer: "Layer",
         dselCRS: "Koordinatensystem",
@@ -991,10 +991,10 @@ GeoExt.Lang.add("de", {
 		executionIdPresentErrorMsg: "Die angegebene execID ist bereits in der Ergebnisstabelle vorhanden",	
 		executionIdEmptyErrorMsg: "Der Server hat eine leere execID zurückgeliefert",	
 		executionIdInvalidErrorMsg: "execID ist nicht gültig!",	
-		processExecutions: "Execution Prozesse",	
+		processExecutions: "Zusammenfassung Herunterladen",	
 		processResponseErrorTitle: "Fehler bei der Antwort des Prozesses",	
 		processResponseErrorMsg: "Der Prozess antwortet nicht korrekt",	
-		processExecutionsLoadText: "Ladevorgangs",
+		processExecutionsLoadText: "Zurück Download",
 		describeProcessErrorMsg: "Es ist nicht möglich die Antwort des Servers zu lesen",	
 		bufferFieldLabel: "Puffer Ungefähre (m)",
 		downloadFormFieldSetTitle: "Formulare zum Herunterladen",
@@ -1007,6 +1007,10 @@ GeoExt.Lang.add("de", {
 	    areaLabel: "Bereich",
 		perimeterLabel: "Perimeter",	
 		radiusLabel: "Radius",
-		centroidLabel: "Zentrum"
+		centroidLabel: "Zentrum",		
+		closeText: "Close",
+		showExecutionIdText: "Zeige ID",
+		processIdentifierText: "Kennzeichnung",
+		downloadIdTitle: "Download ID"
     }
 });

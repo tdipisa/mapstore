@@ -898,7 +898,7 @@ GeoExt.Lang.add("it", {
     
     "gxp.plugins.DownloadPanel.prototype":{
 	    initialText: "Seleziona elemento ...",
-        tabTitle: "Download Interattivo",    
+        tabTitle: "Download",    
         dselTitle: "Selezione Dati",
         dselLayer: "Layer",
         dselCRS: "Sistema di Riferimento",
@@ -978,10 +978,10 @@ GeoExt.Lang.add("it", {
 		executionIdPresentErrorMsg: "L'Id esecuzione specificato è già presente nella Griglia",	
 		executionIdEmptyErrorMsg: "Il server ha ritornato un ID esecuzione vuoto",	
 		executionIdInvalidErrorMsg: "ID esecuzione non valido!",	
-		processExecutions: "Esecuzione Processi",	
+		processExecutions: "Riepilogo Download",	
 		processResponseErrorTitle: "Errore nella Risposta del Processo",	
 		processResponseErrorMsg: "Il Processo non risponde correttamente",	
-		processExecutionsLoadText: "Caricamento Processo",
+		processExecutionsLoadText: "Download Pregresso",
 		describeProcessErrorMsg: "Non si può leggere la risposta del server",	
 		bufferFieldLabel: "Buffer Approssimativo(m)",
 		selectedProcessIdString: "ID Processo Selezionato: ",
@@ -994,6 +994,10 @@ GeoExt.Lang.add("it", {
 		areaLabel: "Area",
 		perimeterLabel: "Perimetro",	
 		radiusLabel: "Raggio",
-		centroidLabel: "Centro"
+		centroidLabel: "Centro",
+		closeText: "Chiudi",
+		showExecutionIdText: "Mostra ID",
+		processIdentifierText: "Identificatore",
+		downloadIdTitle: "ID Download"
     }
 });

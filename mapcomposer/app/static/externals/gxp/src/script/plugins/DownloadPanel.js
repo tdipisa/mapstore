@@ -343,9 +343,9 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	
 	processExecutionEmpty: "Remote data are no longer available.",
 	
-	processExecutions: "Process Executions",
+	processExecutions: "Download Summary",
 	
-	processExecutionsLoadText: "Load Existing Process",
+	processExecutionsLoadText: "Previous Download",
 	
 	processResponseErrorTitle: "Process Response Error",
 	
@@ -378,6 +378,14 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 	radiusLabel: "Radius",
 	
 	centroidLabel: "Centroid",
+	
+	closeText: "Close",
+	
+	showExecutionIdText: "Show Execution ID",
+	
+	processIdentifierText: "Identifier",
+	
+	downloadIdTitle: "Download ID",
 	
     /** private: method[constructor]
      */
@@ -1581,7 +1589,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			   {name: 'name'},
                {name: 'executionId'},
                {name: 'executionStatus'},
-               {name: 'phase'},
                {name: 'progress'},
                {name: 'result'}
             ]
@@ -1629,8 +1636,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 									checkedRecords.push(record);
 								}
 								
-								var phase = record.get('phase');								
-								if(checked && !phase || phase == 'RUNNING' || phase == 'QUEUED'){
+								var executionStatus = record.get('executionStatus');								
+								if(checked && !executionStatus || executionStatus == 'Started' || executionStatus == 'Accepted'){
 									pending++;
 								}
 							}	
@@ -1646,7 +1653,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 												store.remove(checkedRecords);
 												
 												if(store.getCount() < 1){
-													this.resultFieldSet.processExecutionLabel.setText("");
+													//this.resultFieldSet.processExecutionLabel.setText("");
 												}
 											} 
 										},
@@ -1693,25 +1700,27 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                 }, {
                     id       : 'executionId',
                     header   : this.resExecID, 
+					hidden   : true,
                     width    : 45, 
                     sortable : true, 
                     dataIndex: 'executionId'
                 }, {
                     id       : 'executionStatus',
                     header   : this.resProcStatus, 
+					hidden   : true,
                     width    : 63, 
                     dataIndex: 'executionStatus',
 					renderer:  function (val, obj, record) {
 						if(!val)
 							return;
-						if(val!='Failed' && record.data.phase){
-							return Ext.util.Format.capitalize(record.data.phase);
+						if(val != 'Failed' && record.data.executionStatus){
+							return Ext.util.Format.capitalize(record.data.executionStatus);
 						}
 						return val;
 					}
                 }, {
                     xtype: 'actioncolumn',
-                    header: this.resGet, 
+                    header: this.resProcStatus, 
                     width: 36,
                     items: [{
 						getClass: function(v, meta, rec) {
@@ -1761,13 +1770,6 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						scope: this
                     }]
                 }, {
-                    id       : 'phase',
-                    header   : this.resPhase, 
-                    width    : 60, 
-                    sortable : true, 
-                    hidden   : true,
-                    dataIndex: 'phase'
-                }, {
                     id       : 'progress',
                     header   : this.resProgress, 
                     width    : 79, 
@@ -1796,17 +1798,62 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							}
 						}
 					}
+                }, {
+                    xtype: 'actioncolumn',
+                    header: this.showExecutionIdText, 
+                    width: 57,
+                    hidden: false,
+					scope: this,
+                    items: [{
+                        iconCls: 'exec-id',
+                        tooltip: this.showExecutionIdText,
+                        handler: function(grid, rowIndex, colIndex) {
+							var store = grid.getStore();
+							var rec = store.getAt(rowIndex);
+																	
+							var showIdForm = new Ext.form.FormPanel({
+								items: [
+									{
+										xtype: 'textfield',
+										selectOnFocus: true,
+										allowBlank: false,
+										fieldLabel: this.processIdentifierText,
+										value: rec.get("executionId")
+									}
+								],
+								bbar: ["->", {
+									text: this.closeText,
+									scope: this,
+									handler: function(){
+										showIdWindow.destroy();
+									}
+								}]
+							});
+							
+							var showIdWindow = new Ext.Window({
+								title: this.downloadIdTitle,
+								width: 300,
+								modal: true,
+								items: [
+									showIdForm
+								]
+							});
+							
+							showIdWindow.show();
+						},
+						scope: this
+                    }]
                 }
             ],
 			listeners:{
 				scope: this,
 				rowclick: function(grid, rowIndex, evt){
-					var selectedProcessId = grid.getStore().getAt(rowIndex).get("executionId");
+					/*var selectedProcessId = grid.getStore().getAt(rowIndex).get("executionId");
 					if(selectedProcessId){
 						this.resultFieldSet.processExecutionLabel.setText(this.selectedProcessIdString + grid.getStore().getAt(rowIndex).get("executionId"));
 					}else{
 						this.resultFieldSet.processExecutionLabel.setText(this.selectedProcessIdString + this.selectedProcessIdStringUndef);
-					}
+					}*/
 				}
 			},
             height: 300,
@@ -1863,7 +1910,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
             title: this.processExecutions,
 			autoHeight: 342,
 			items: [
-				{
+				/*{
 					xtype: "label",
 					ref: 'processExecutionLabel',
 					cls: "labelField",
@@ -1871,7 +1918,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 						marginBottom: "10px"
 					},
 					text: ""
-				},
+				},*/
 				this.resultPanel,
 				this.executionIdFieldSet
 			]
@@ -2124,6 +2171,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 			// The process description
 			//
 			data.description = executeResponse.process.abstract;
+			
+			data.progress = (executeResponse.status.percentCompleted || "0") + "%";
 
 			var store = this.resultPanel.getStore();
 			var record = new store.recordType(data); // create new record
@@ -2290,7 +2339,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
                    fn: function(btn){
                         if(btn == 'ok'){
 							store.remove(rec);
-							this.resultFieldSet.processExecutionLabel.setText("");
+							//this.resultFieldSet.processExecutionLabel.setText("");
 						} 
                     },
                    icon: Ext.MessageBox.QUESTION,
@@ -2329,7 +2378,7 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
     updateRecord: function(r, force){        		
 		var statusPhase = r.get('executionStatus');
 		
-        if(statusPhase != 'Failed' && statusPhase != 'Succeeded'){
+        if((statusPhase != 'Failed' && statusPhase != 'Succeeded') || force){
 			var statusLocation = r.get('statusLocation');
 			r.beginEdit();
 		
@@ -2343,12 +2392,15 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 					
 					var executeStatusResponse = new OpenLayers.Format.WPSExecute().read(response);
 					
-					if(executeStatusResponse.executeResponse.status.processSucceeded){
+					var report;
+					if(executeStatusResponse.exceptionReport){
+						report = executeStatusResponse.exceptionReport.exceptions[0].texts[0];
+					}else if(executeStatusResponse.executeResponse.status.processSucceeded){
 						executeStatusResponse.executeResponse.status.name = 'Process Succeeded';
 						executeStatusResponse.executeResponse.status.percentCompleted = 100;
 					}
 					
-					var statusName = executeStatusResponse.executeResponse.status.name.replace('Process ', '');
+					var statusName = report ? "Failed" : executeStatusResponse.executeResponse.status.name.replace('Process ', '');
 					
 					switch(statusName){
 						case 'Started':
@@ -2359,8 +2411,8 @@ gxp.plugins.DownloadPanel = Ext.extend(gxp.plugins.Tool, {
 							break;
 						case 'Failed':
 							r.set('executionStatus', statusName);
-							var report = executeStatusResponse.executeResponse.status.exception.exceptionReport;
-							r.set('result', report.exceptions[0].texts[0]);							
+							report = report || executeStatusResponse.executeResponse.status.exception.exceptionReport.exceptions[0].texts[0];
+							r.set('result', report);							
 							scope.pendingRows.delete(processExecId);
 							break;
 						case 'Succeeded':

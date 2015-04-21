@@ -249,3 +249,11 @@ div#homelogos ul li a:hover {
     width:16px;
     height:16px;
 }
+
+.x-action-col-cell  .exec-id {
+    background-image: url(img/silk/tag_blue.png) !important;
+    width:16px;
+    height:16px;
+	margin-left: 15px;
+	background-repeat: no-repeat;
+}
